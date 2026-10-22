@@ -11,7 +11,6 @@
 
  const q = s => el.querySelector(s), historyArea = q('.tutor-messages'), status = q('.tutor-connection'), setup = q('.tutor-setup');
  let data = {version: 1, clientId: crypto.randomUUID(), histories: {}, selectedProvider: 'antigravity', selectedModel: 'ag/gemini-3.8-flash-low'}, context = null, token = null, busy = false, controller = null, serverStatus = null;
- const submittedContexts = new Map();
 
  function isAntigravity(p){ return p === 'antigravity' || p === 'gemini'; }
 
@@ -191,6 +190,8 @@
 
   try{
    if(!token && !(await connect())) return;
+   // Capture prior turns before adding this request's display label.
+   const recentHistory = history().filter(m => ['user', 'assistant'].includes(m.role) && m.text.trim()).slice(-6).map(m => ({role: m.role, text: m.text}));
    add('user', label);
    const modelLabel = currentIsAnti ? (q('#tutor-model')?.selectedOptions?.[0]?.text || 'Antigravity') : 'Codex';
    status.textContent = gradingSubmission
@@ -198,7 +199,6 @@
     : `Gia sư (${modelLabel}) đang đọc bài làm…`;
    controller = new AbortController();
 
-   const recentHistory = history().slice(-16).map(m => ({role: m.role, text: m.text}));
    const response = await fetch(base + '/api/tutor/review', {
     method: 'POST',
     mode: 'cors',
@@ -237,7 +237,6 @@
      assessment = m.assessment || null;
      done = true;
      completionNotice = m.persistenceWarning || (m.sessionRecovered ? 'Đã mở phiên thay thế và gửi lại ngữ cảnh bài làm vì phiên cũ chưa có lịch sử lưu.' : '');
-     if(snapshot) submittedContexts.set(context.lessonId, snapshot);
      save();
      render();
     }
@@ -299,10 +298,8 @@
    if(!question || !context) return;
    const fresh = window.TechPathTutorContext?.();
    const snapshot = fresh?.lessonId === context.lessonId ? fresh : context;
-   const changed = submittedContexts.get(context.lessonId) !== snapshot.prompt;
-   const prompt = (changed ? snapshot.prompt + '\n\n' : 'Dựa trên bài làm đã review trong cuộc trò chuyện này.\n\n') + 'Câu hỏi tiếp theo của tôi:\n' + question;
    input.value = '';
-   await send(prompt, question, snapshot.prompt);
+   await send(question, question, snapshot.prompt);
   }
  });
 
@@ -322,7 +319,7 @@
   identity(){ return data.clientId; },
   open(next){ open(next); },
   export(){ return structuredClone(data); },
-  restore(raw){ if(!raw) return; data = validate(raw); updateAiSelector(); submittedContexts.clear(); save(); if(context) render(); },
+  restore(raw){ if(!raw) return; data = validate(raw); updateAiSelector(); save(); if(context) render(); },
   validate,
  };
 })();

@@ -1,4 +1,4 @@
-import {TUTOR_INSTRUCTIONS} from './local-codex.mjs';
+import {TUTOR_INSTRUCTIONS} from './tutor-prompts.mjs';
 import {sharedContext} from './tutor-context.mjs';
 import {parseAssessment,assessmentText} from './assessment.mjs';
 import path from 'node:path';
