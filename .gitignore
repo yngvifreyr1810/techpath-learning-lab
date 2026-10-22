@@ -1,0 +1,12 @@
+node_modules/
+*.log
+*.tar.gz
+*.zip
+techpath-backup-*.json
+techpath-journal-*.md
+workstation-summary.csv
+.env
+.env.*
+.DS_Store
+Thumbs.db
+docs/qa/
