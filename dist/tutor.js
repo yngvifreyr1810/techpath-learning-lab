@@ -7,6 +7,7 @@
  document.body.append(el);
  const q=s=>el.querySelector(s),historyArea=q('.tutor-messages'),status=q('.tutor-connection'),setup=q('.tutor-setup');
  let data={version:1,clientId:crypto.randomUUID(),histories:{}},context=null,token=null,busy=false,controller=null;
+ const submittedContexts=new Map();
  function validate(raw){
   if(!raw||raw.version!==1||!raw.histories||typeof raw.histories!=='object'||Array.isArray(raw.histories))throw new Error('Lịch sử gia sư không hợp lệ.');
   const next={version:1,clientId:/^[a-f0-9-]{36}$/i.test(raw.clientId||'')?raw.clientId:crypto.randomUUID(),histories:{}};
@@ -38,7 +39,7 @@
    token=result.token;status.textContent=result.message;return true;
   }catch(error){token=null;setup.hidden=false;status.textContent=error instanceof TypeError?'Chưa kết nối được bộ gia sư trên máy. Khởi động bộ kết nối hoặc mở bản local bên dưới.':error.message;return false;}
  }
- async function send(prompt,label){
+ async function send(prompt,label,snapshot){
   if(busy){status.textContent='Gia sư đang trả lời. Chờ xong hoặc bấm Dừng.';return;}
   if(!prompt.trim()||prompt.length>60000){status.textContent='Giữ phần bài làm và câu hỏi liên quan dưới 60.000 ký tự.';return;}
   busy=true;controls();let answer=null,done=false;
@@ -51,7 +52,7 @@
    const event=line=>{
     if(!line.trim())return;const m=JSON.parse(line);
     if(m.type==='delta'){answer.text+=m.text;render();}
-    if(m.type==='done'){answer.text=m.text;done=true;save();render();}
+    if(m.type==='done'){answer.text=m.text;done=true;if(snapshot)submittedContexts.set(context.lessonId,snapshot);save();render();}
     if(m.type==='error')throw new Error(m.text);
    };
    while(true){const part=await reader.read();buffer+=decoder.decode(part.value||new Uint8Array(),{stream:!part.done});let split;while((split=buffer.indexOf('\n'))>=0){event(buffer.slice(0,split));buffer=buffer.slice(split+1);}if(part.done)break;}
@@ -70,16 +71,18 @@
    const fresh=window.TechPathTutorContext?.();
    // Freeze to the currently reviewed lesson. Navigation never mixes another draft into a reply.
    const snapshot=fresh?.lessonId===context.lessonId?fresh:context;
-   const prior=history().filter(m=>m.role!=='error').slice(-8).map(m=>(m.role==='user'?'Tôi':'Gia sư')+': '+m.text.slice(0,3500)).join('\n\n');
-   const prompt=snapshot.prompt+'\n\nTrao đổi gần đây trong app (có thể đã nằm trong lịch sử của bạn):\n'+prior+'\n\nCâu hỏi tiếp theo của tôi:\n'+question;
-   input.value='';await send(prompt,question);
+   // Codex already stores prior turns. Only resend the draft when it changed,
+   // or when this page has not yet received a successful response for it.
+   const changed=submittedContexts.get(context.lessonId)!==snapshot.prompt;
+   const prompt=(changed?snapshot.prompt+'\n\n':'Dựa trên bài làm đã review trong cuộc trò chuyện này.\n\n')+'Câu hỏi tiếp theo của tôi:\n'+question;
+   input.value='';await send(prompt,question,snapshot.prompt);
   }
  });
  window.TechPathTutor={
-  async review(next){if(busy){open();status.textContent='Gia sư đang trả lời bài trước. Chờ xong rồi gửi bài mới.';return;}open(next);await send(next.prompt,'Nhờ review bài làm hiện tại · '+next.title+'\n'+(next.question||'Chỉ một gợi ý nhỏ ở điểm cần kiểm tra tiếp.'));},
+  async review(next){if(busy){open();status.textContent='Gia sư đang trả lời bài trước. Chờ xong rồi gửi bài mới.';return;}open(next);await send(next.prompt,'Nhờ review bài làm hiện tại · '+next.title+'\n'+(next.question||'Chỉ một gợi ý nhỏ ở điểm cần kiểm tra tiếp.'),next.prompt);},
   open(next){open(next);},
   export(){return structuredClone(data);},
-  restore(raw){if(!raw)return;data=validate(raw);save();if(context)render();},
+  restore(raw){if(!raw)return;data=validate(raw);submittedContexts.clear();save();if(context)render();},
   validate,
  };
 })();

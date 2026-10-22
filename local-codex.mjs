@@ -65,7 +65,8 @@ export class LocalCodex {
     }
    };
    this.listeners.add(listener);
-   const result=await this.rpc('turn/start',{threadId,model:MODEL,effort:'low',input:[{type:'text',text:prompt}],approvalPolicy:'never',sandboxPolicy:{type:'readOnly',access:{type:'restricted',includePlatformDefaults:true,readableRoots:[this.folder]}}});
+   // Keep read-only execution. The current server rejects the retired readOnly.access field.
+   const result=await this.rpc('turn/start',{threadId,model:MODEL,effort:'low',input:[{type:'text',text:prompt}],approvalPolicy:'never',sandboxPolicy:{type:'readOnly'}});
    turnId=result.turn.id;if(aborted)abort();
    let deadline;const timeout=new Promise((_,reject)=>{deadline=setTimeout(()=>{abort();reject(new Error('Phản hồi quá lâu. Đã yêu cầu dừng; không tự gửi lại.'));},240000);});
    try{const answer=await Promise.race([finished,timeout]);if(!answer.trim())throw new Error('Codex kết thúc nhưng chưa có câu trả lời.');emit({type:'done',text:answer,model:MODEL});}finally{clearTimeout(deadline);}
