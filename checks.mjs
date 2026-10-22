@@ -1,16 +1,27 @@
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
+import {sharedContext} from './tutor-context.mjs';
+import {routerStatus, routerReview} from './router-ai.mjs';
+
 const elements=new Map();
 const node=selector=>{if(!elements.has(selector))elements.set(selector,{innerHTML:'',textContent:'',classList:{add(){},remove(){}},addEventListener(){}});return elements.get(selector);};
 const docHandlers={},winHandlers={};let saved;
 const ctx={console,Date,Math,JSON,Number,String,Set,Map,Object,Array,Boolean,Error,structuredClone,isNaN,
  location:{hash:'#lesson/sql-join'},history:{replaceState(){}},
  localStorage:{getItem(){return null;},setItem(k,v){saved=JSON.parse(v);}},
- document:{querySelector:s=>elements.get(s)||(['#nav','#breadcrumb','#main','#save-status','#import-file'].includes(s)?node(s):null),addEventListener(k,f){docHandlers[k]=f;},title:''},
+ document:{
+  querySelector:s=>elements.get(s)||(['#nav','#breadcrumb','#main','#save-status','#import-file'].includes(s)?node(s):null),
+  querySelectorAll:s=>[],
+  addEventListener(k,f){docHandlers[k]=f;},
+  title:''
+ },
  setInterval(){},setTimeout(){},clearTimeout(){},navigator:{},crypto:{randomUUID:()=> 'test-id'}};
 ctx.window=ctx;ctx.globalThis=ctx;ctx.addEventListener=(k,f)=>winHandlers[k]=f;ctx.scrollTo=()=>{};
-vm.createContext(ctx);vm.runInContext(readFileSync(new URL('./dist/content.js',import.meta.url),'utf8'),ctx);vm.runInContext(readFileSync(new URL('./dist/app.js',import.meta.url),'utf8'),ctx);
+vm.createContext(ctx);
+vm.runInContext(readFileSync(new URL('./dist/content.js',import.meta.url),'utf8'),ctx);
+vm.runInContext(readFileSync(new URL('./dist/app.js',import.meta.url),'utf8'),ctx);
+
 const c=ctx.TECHPATH,debug=ctx.TechPathDebug;
 assert.equal(c.lessons.length,15);assert.equal(new Set(c.lessons.map(l=>l.id)).size,15);
 for(const l of c.lessons){assert.ok(l.task&&l.body&&l.solution&&l.transfer);assert.equal(l.hints.length,3);assert.ok(l.checks.length);assert.ok(c.modules.some(m=>m.id===l.module));}
@@ -30,4 +41,21 @@ const unsafe=JSON.parse(JSON.stringify(saved));unsafe.selected='unknown';unsafe.
 const clean=debug.validate(unsafe);assert.equal(clean.selected,'sql-proc');assert.equal(clean.duration,60);assert.equal(clean.drafts.unknown,undefined);
 // Render every route to catch authored content / missing data regressions.
 for(const hash of ['#home','#lessons','#session','#roadmap','#notebook','#glossary','#settings',...c.lessons.map(l=>'#lesson/'+l.id)]){ctx.location.hash=hash;winHandlers.hashchange();assert.ok(node('#main').innerHTML.length>100);}
-console.log('PASS: 15 lessons; 226 duration plans; cross-lesson draft isolation; backup round-trip/validation; all routes render. SQL execution not included.');
+
+// Shared context tests (ensuring cross-AI shared history)
+const history = [
+ {role: 'user', text: 'Tôi muốn lấy tất cả khách hàng kể cả người chưa mua hàng.'},
+ {role: 'assistant', text: 'Hãy nghĩ về chiều ưu tiên dữ liệu: bên nào cần giữ 100% dòng?'}
+];
+const formatted = sharedContext({prompt: 'Dùng LEFT JOIN có đúng không?', contextPrompt: '', history});
+assert.ok(formatted.includes('LỊCH SỬ CHUNG GẦN ĐÂY CỦA BÀI'));
+assert.ok(formatted.includes('Người học: Tôi muốn lấy tất cả khách hàng'));
+assert.ok(formatted.includes('Gia sư: Hãy nghĩ về chiều ưu tiên'));
+assert.ok(formatted.includes('YÊU CẦU HIỆN TẠI:\nDùng LEFT JOIN có đúng không?'));
+
+// Router status test
+const status = await routerStatus();
+assert.equal(typeof status.connected, 'boolean');
+assert.ok(Array.isArray(status.models));
+
+console.log('PASS: 15 lessons; 226 duration plans; cross-lesson draft isolation; backup round-trip/validation; all routes render; shared context & router verified.');
