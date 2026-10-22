@@ -39,25 +39,26 @@
    token=result.token;status.textContent=result.message;return true;
   }catch(error){token=null;setup.hidden=false;status.textContent=error instanceof TypeError?'Chưa kết nối được bộ gia sư trên máy. Khởi động bộ kết nối hoặc mở bản local bên dưới.':error.message;return false;}
  }
- async function send(prompt,label,snapshot){
+ async function send(prompt,label,snapshot,gradingSubmission){
   if(busy){status.textContent='Gia sư đang trả lời. Chờ xong hoặc bấm Dừng.';return;}
   if(!prompt.trim()||prompt.length>60000){status.textContent='Giữ phần bài làm và câu hỏi liên quan dưới 60.000 ký tự.';return;}
-  busy=true;controls();let answer=null,done=false,completionNotice='';
+  busy=true;controls();let answer=null,done=false,completionNotice='',assessment=null;
   try{
    if(!token&&!(await connect()))return;
-   add('user',label);status.textContent='Gia sư đang đọc bài làm…';controller=new AbortController();
-   const response=await fetch(base+'/api/tutor/review',{method:'POST',mode:'cors',headers:{'Content-Type':'application/json','X-TechPath-Token':token},body:JSON.stringify({clientId:data.clientId,lessonId:context.lessonId,prompt,contextPrompt:snapshot}),signal:controller.signal});
+   add('user',label);status.textContent=gradingSubmission?'AI đang đối chiếu bài làm với yêu cầu và kết quả chạy…':'Gia sư đang đọc bài làm…';controller=new AbortController();
+   const response=await fetch(base+'/api/tutor/review',{method:'POST',mode:'cors',headers:{'Content-Type':'application/json','X-TechPath-Token':token},body:JSON.stringify({clientId:data.clientId,lessonId:context.lessonId,prompt,contextPrompt:snapshot,purpose:gradingSubmission?'grade':'chat',submission:gradingSubmission}),signal:controller.signal});
    if(!response.ok){if(response.status===403)token=null;const result=await response.json();throw new Error(result.error||'Không gửi được bài làm.');}
    answer=add('assistant','');const reader=response.body.getReader(),decoder=new TextDecoder();let buffer='';
    const event=line=>{
     if(!line.trim())return;const m=JSON.parse(line);
     if(m.type==='delta'){answer.text+=m.text;render();}
-    if(m.type==='done'){answer.text=m.text;done=true;completionNotice=m.persistenceWarning||(m.sessionRecovered?'Đã mở phiên thay thế và gửi lại ngữ cảnh bài làm vì phiên cũ chưa có lịch sử lưu.':'');if(snapshot)submittedContexts.set(context.lessonId,snapshot);save();render();}
+    if(m.type==='done'){answer.text=m.text;assessment=m.assessment||null;done=true;completionNotice=m.persistenceWarning||(m.sessionRecovered?'Đã mở phiên thay thế và gửi lại ngữ cảnh bài làm vì phiên cũ chưa có lịch sử lưu.':'');if(snapshot)submittedContexts.set(context.lessonId,snapshot);save();render();}
     if(m.type==='error')throw new Error(m.text);
    };
    while(true){const part=await reader.read();buffer+=decoder.decode(part.value||new Uint8Array(),{stream:!part.done});let split;while((split=buffer.indexOf('\n'))>=0){event(buffer.slice(0,split));buffer=buffer.slice(split+1);}if(part.done)break;}
    if(buffer.trim())event(buffer);if(!done)throw new Error('Kết nối ngắt trước khi phản hồi hoàn tất. Không tự gửi lại.');
    status.textContent=completionNotice||'Đã review. Bạn có thể suy luận và hỏi tiếp ngay bên dưới.';
+   return {assessment};
   }catch(error){if(answer&&!answer.text)history().pop();add('error',error.name==='AbortError'?'Đã yêu cầu dừng. Phản hồi một phần (nếu có) được giữ lại.':error.message);status.textContent='Chưa hoàn tất — không tự gửi lại để tránh dùng thêm hạn mức.';
   }finally{controller=null;busy=false;controls();save();}
  }
@@ -80,6 +81,8 @@
  });
  window.TechPathTutor={
   async review(next){if(busy){open();status.textContent='Gia sư đang trả lời bài trước. Chờ xong rồi gửi bài mới.';return;}open(next);await send(next.prompt,'Nhờ review bài làm hiện tại · '+next.title+'\n'+(next.question||'Chỉ một gợi ý nhỏ ở điểm cần kiểm tra tiếp.'),next.prompt);},
+  async grade(next){if(busy){open();status.textContent='Chờ gia sư trả lời xong trước khi đánh giá.';return null;}open(next);return await send(next.prompt,'Review & đánh giá · '+next.title,next.prompt,next.submission);},
+  identity(){return data.clientId;},
   open(next){open(next);},
   export(){return structuredClone(data);},
   restore(raw){if(!raw)return;data=validate(raw);submittedContexts.clear();save();if(context)render();},

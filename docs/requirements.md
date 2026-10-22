@@ -31,3 +31,7 @@ Information Systems background, SQL stronger than Excel/BI, Windows/PC interest,
 ## Future candidates (not promises)
 
 Automatic private sync, saved-file SSMS bridge, structured feedback import, more realistic unseen datasets and branching diagnostics. Any AI integration needs an explicit cost and context-access design.
+# Current flow update — v0.4
+
+SQL practice runs directly inside TechPath through the local SQL Server Express lab connector. Review now grades the whole exercise using actual run output and authored criteria. Pass saves AI feedback and moves on; retry/needs-evidence keeps the exercise. Skip saves the attempt, opens another exercise and remains revisitable. The manual self-check tab is removed. Legacy manual mastery records remain historical; an AI pass is not labelled independent mastery. These decisions supersede earlier no-execution or self-assessment requirements below.
+

@@ -1,7 +1,8 @@
-import {randomBytes} from 'node:crypto';
 import {LocalCodex} from './local-codex.mjs';
+import {sessionToken as token} from './session-access.mjs';
+import {assessmentSpec} from './assessment.mjs';
+import {executionForGrade} from './sql-lab.mjs';
 import {fileURLToPath} from 'node:url';
-const token=randomBytes(32).toString('hex');
 const tutor=new LocalCodex(fileURLToPath(new URL('./.techpath-local/',import.meta.url)));
 export async function tutorRoute(req,res,pathname){
  if(!pathname.startsWith('/api/tutor/'))return false;
@@ -15,10 +16,19 @@ export async function tutorRoute(req,res,pathname){
   let data;try{data=JSON.parse(body);}catch{json(400,{error:'Dữ liệu không hợp lệ.'});return true;}
   if(!/^[a-f0-9-]{36}$/i.test(data.clientId||'')||!/^[a-z0-9-]{1,60}$/.test(data.lessonId||'')||typeof data.prompt!=='string'||!data.prompt.trim()||data.prompt.length>60000){json(400,{error:'Bài làm hoặc thông tin buổi học không hợp lệ.'});return true;}
   if(data.contextPrompt!==undefined&&(typeof data.contextPrompt!=='string'||data.contextPrompt.length>60000)){json(400,{error:'Ngữ cảnh bài làm không hợp lệ.'});return true;}
+  if(data.purpose!==undefined&&!['chat','grade'].includes(data.purpose)){json(400,{error:'Loại yêu cầu không hợp lệ.'});return true;}
+  let grading=null;
+  if(data.purpose==='grade'){
+   const submission={...data.submission};delete submission.execution;
+   const execution=executionForGrade(data.clientId,data.lessonId,typeof submission.code==='string'?submission.code:'',submission.runId);
+   submission.execution=execution;
+   if(execution.verified){submission.output=execution.output;delete submission.execution.output;}
+   grading=assessmentSpec(data.lessonId,submission);
+  }
   res.writeHead(200,{'Content-Type':'application/x-ndjson; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});
   const controller=new AbortController();res.on('close',()=>controller.abort());
   const emit=event=>{if(!res.destroyed)res.write(JSON.stringify(event)+'\n');};
-  try{await tutor.review(data,emit,controller.signal);}catch(error){emit({type:'error',text:error.message});}finally{res.end();}
+  try{await tutor.review({...data,grading},emit,controller.signal);}catch(error){emit({type:'error',text:error.message});}finally{res.end();}
  }catch(error){if(!res.headersSent)json(503,{error:error.message});else res.end();}
  return true;
 }

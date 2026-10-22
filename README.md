@@ -1,5 +1,16 @@
 # TechPath — Personal Learning Lab
 
+## SQL lab và AI đánh giá (v0.4 — luồng hiện tại)
+
+1. Mở `Start-TechPath.cmd` trên Windows. Cần SQL Server Express tại `localhost\SQLEXPRESS` để chạy SQL, và Codex đăng nhập bằng ChatGPT để dùng AI. Laptop cần cài SQL Server Express riêng; tiến độ chuyển bằng JSON.
+2. Bài học → **Thực hành** → viết query trong app → **Chạy SQL** hoặc **Ctrl+Enter**. Kết quả nhiều bảng, NULL và lỗi kèm dòng xuất hiện ngay bên dưới. Hỗ trợ GO trên dòng riêng, CTE, CREATE OR ALTER PROCEDURE, EXEC và sys.sp_helptext. Chạy SQL không gọi AI hoặc tiêu hao hạn mức model.
+3. Bấm **Review & đánh giá**. Nếu code mới chưa chạy, app chạy trước rồi gửi kết quả và rubric của bài cho AI. Đạt thì lưu nhận xét/tối ưu và tự mở bài tiếp theo. Chưa đạt hoặc thiếu bằng chứng thì giữ bài, cho một gợi ý nhỏ. Hỏi tiếp trong khung gia sư không tự chấm hay chuyển bài.
+4. **Bỏ qua bài** lưu bản làm hiện tại và mở bài khác; không tính là đạt. Thư viện có bộ lọc **Đã bỏ qua** để quay lại. Nhật ký lưu kết quả, tiêu chí và nhận xét. Tab tự kiểm tra và các nút tự xác nhận đã được bỏ.
+
+Kết quả là **AI xác nhận đạt bài thực hành**, không phải chứng nhận kỹ năng độc lập. App không tự chạy SQL ở môi trường công ty. Database `TechPathLab_<id>` do app tạo có cùng 6 customers, 8 orders, 5 payments như SupportLab, tách khỏi database SupportLab cũ. `USE SupportLab` trên dòng riêng được ánh xạ vào lab để dùng được code đã học. Mỗi máy có lab riêng; dữ liệu SQL/procedure trên máy không tự đồng bộ theo JSON.
+
+Các phần v0.2/v0.3 bên dưới ghi lại nền tảng kết nối cũ; luồng v0.4 ở trên được ưu tiên khi có khác biệt.
+
 ## Gia sư trực tiếp (v0.3)
 
 1. Trên Windows, mở `Start-TechPath.cmd` trong thư mục project. Cần Node.js 20+ và Codex đã đăng nhập bằng ChatGPT. Bộ khởi động tìm Codex CLI hoặc bản đi kèm desktop app.
