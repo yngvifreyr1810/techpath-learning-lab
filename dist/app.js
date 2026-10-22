@@ -33,10 +33,11 @@
   if(raw.session&&validIds.has(raw.session.lessonId)&&Number.isFinite(raw.session.elapsed)&&raw.session.elapsed>=0&&Number.isFinite(raw.session.duration)&&raw.session.duration>=15&&raw.session.duration<=240){s.session={id:str(raw.session.id,80)||uid(),lessonId:raw.session.lessonId,duration:raw.session.duration,elapsed:raw.session.elapsed,running:!!raw.session.running,started:Date.now()}; if(raw.session.running&&Number.isFinite(raw.session.started))s.session.elapsed+=Math.max(0,Date.now()-raw.session.started);}
   return s;
  }
- let state=emptyState(), storageError=false;
- try{const saved=localStorage.getItem(KEY);if(saved)state=validate(JSON.parse(saved));}catch(e){storageError=true;}
+ let state=emptyState(), storageError=false,hadLocalState=false;
+ try{const saved=localStorage.getItem(KEY);if(saved){state=validate(JSON.parse(saved));hadLocalState=true;}}catch(e){storageError=true;}
+ try{const hostState=window.TechPathHost?.state();if(hostState&&(!hadLocalState||Date.parse(hostState.updatedAt)>Date.parse(state.updatedAt)))state=validate(hostState);}catch{/* A malformed optional widget snapshot does not replace the local draft. */}
  let lessonTab='learn',moduleFilter='all',lessonSearch='',notebookSearch='',vocabSearch='',reviewPacket='',saveTimer,renderedLessonId=null;
- function save(){state.updatedAt=new Date().toISOString();try{localStorage.setItem(KEY,JSON.stringify(state));$('#save-status').textContent='Đã lưu trên thiết bị này';storageError=false;}catch{$('#save-status').textContent='Chưa lưu được — hãy xuất sao lưu';storageError=true;}}
+ function save(){state.updatedAt=new Date().toISOString();try{localStorage.setItem(KEY,JSON.stringify(state));$('#save-status').textContent='Đã lưu trên thiết bị này';storageError=false;}catch{$('#save-status').textContent='Chưa lưu được — hãy xuất sao lưu';storageError=true;}window.TechPathHost?.persist(state);}
  function toast(t){$('#toast').textContent=t;$('#toast').classList.add('show');clearTimeout(toast.timeout);toast.timeout=setTimeout(()=>$('#toast').classList.remove('show'),3200);}
  function download(name,text,type='text/plain;charset=utf-8'){const u=URL.createObjectURL(new Blob([text],{type}));const a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);}
  async function copy(t){try{await navigator.clipboard.writeText(t);toast('Đã copy.');}catch{showModal('Copy nội dung',`<p>Trình duyệt chưa cho phép clipboard. Chọn nội dung bên dưới và copy thủ công.</p><textarea readonly>${escape(t)}</textarea>`);}}
@@ -112,7 +113,8 @@ Trong SSMS Chat, hãy dùng ngữ cảnh query đang mở; nếu thiếu thì h�
   if(b.hasAttribute('data-download-code')){syncDraft();download(currentLesson().id+'.sql',draft(currentLesson().id).code);}
   if(b.hasAttribute('data-save-attempt')){storeAttempt();toast('Đã lưu mốc thực hành vào Nhật ký.');}
   if(b.hasAttribute('data-new-attempt')){syncDraft();const l=currentLesson(),d=draft(l.id);if(d.code||d.notes||d.output)storeAttempt();state.drafts[l.id]={code:'',output:'',notes:'',question:'',hints:0,solution:false,mode:d.mode,checks:[]};save();render();toast('Lần thử mới. Bài cũ đã giữ trong Nhật ký.');}
-  if(b.hasAttribute('data-review')){reviewPacket=packet();save();showModal('Nhờ review khi bạn cần',`<p>Copy nội dung này vào Copilot Chat của SSMS. Copilot đọc editor đang mở; app chỉ cung cấp đề bài, bài làm đã dán và nguyên tắc gợi ý. Đây không phải phản hồi AI tự động.</p><textarea readonly>${escape(reviewPacket)}</textarea><div class="actions"><button class="button" data-copy-packet>Copy ngữ cảnh</button><button class="button secondary" data-download-packet>Tải file Markdown</button></div>`);}
+  if(b.hasAttribute('data-review')){reviewPacket=packet();save();const connected=window.TechPathHost?.available();showModal(connected?'Hỏi gia sư trong cuộc trò chuyện này':'Kết nối gia sư ChatGPT / Codex',`<p>${connected?'Câu hỏi sẽ gửi vào cuộc trò chuyện đang chứa TechPath, dùng model bạn đang chọn tại đó. Chỉ gửi khi bạn bấm nút bên dưới. Phản hồi xuất hiện trong chat cạnh app.':'Để bỏ bước copy, mở TechPath bằng plugin trong ChatGPT/Codex và chọn công cụ “Mở TechPath”. Tab web độc lập không có quyền gửi vào chat.'}</p><label for="review-preview">Nội dung sẽ được gửi (đề bài, code, lỗi và câu hỏi)</label><textarea id="review-preview" readonly>${escape(reviewPacket)}</textarea><div class="actions">${connected?'<button class="button" data-send-review>Gửi vào cuộc trò chuyện này →</button>':''}<button class="button secondary" data-copy-packet>Copy ngữ cảnh</button><button class="button ghost" data-download-packet>Tải Markdown</button></div><p class="save-meta">Không đọc trực tiếp SSMS. Hãy dán code hoặc nhập file .sql để gia sư có đủ dữ kiện. Tiếp tục trong đúng chat học này để giữ bối cảnh trước đó.</p><p id="review-send-status" class="notice" role="status"></p>`);}
+  if(b.hasAttribute('data-send-review')){b.disabled=true;const label=b.textContent;b.textContent='Đang gửi…';try{await window.TechPathHost.send(reviewPacket);$('#review-send-status').textContent='Host đã nhận yêu cầu gửi. Xem phản hồi trong cuộc trò chuyện cạnh TechPath.';b.textContent='Đã gửi ✓';}catch(err){$('#review-send-status').textContent=err.message;b.textContent=label;b.disabled=false;}}
   if(b.hasAttribute('data-copy-packet'))copy(reviewPacket);
   if(b.hasAttribute('data-download-packet'))download('review-context.md',reviewPacket);
   if(b.hasAttribute('data-assess')){syncDraft();const l=currentLesson(),d=draft(l.id),value=b.dataset.assess;if(!d.code.trim()&&!d.notes.trim()){toast('Ghi bài làm hoặc cách suy luận trước khi tự đánh giá.');return;}if(value==='independent'&&(d.hints>0||d.solution)){toast('Lần này có trợ giúp. Hãy ghi nhận đúng; lần ôn sau thử độc lập.');return;}if(value==='independent'&&!l.checks.every((_,i)=>d.checks[i])){toast('Hãy đối chiếu đủ checklist trước khi xác nhận tự làm.');return;}storeAttempt(value);render();toast('Đã ghi nhận. Lịch ôn sẽ dựa trên lần thực hành này.');}
@@ -128,7 +130,16 @@ Trong SSMS Chat, hãy dùng ngữ cảnh query đang mở; nếu thiếu thì h�
  window.addEventListener('hashchange',()=>{syncDraft();save();lessonTab='learn';render();window.scrollTo(0,0);});
  window.addEventListener('pagehide',()=>{syncDraft();if(state.session){state.session.elapsed=elapsed();state.session.started=Date.now();}save();});
  setInterval(()=>{if($('#timer'))$('#timer').textContent=formatTime(elapsed());},1000);
- render();
+ let lastHostLesson=null,hostConnected=!!window.TechPathHost?.available(),hostHydrated=false;
+ function applyHostContext(){
+  if(!window.TechPathHost)return;
+  if(!hostHydrated){const snapshot=window.TechPathHost.state();if(snapshot&&!hadLocalState){try{state=validate(snapshot);hostHydrated=true;}catch{}}}
+  const context=window.TechPathHost.context();
+  if(context?.lesson_id&&validIds.has(context.lesson_id)&&context.lesson_id!==lastHostLesson){lastHostLesson=context.lesson_id;syncDraft();state.selected=context.lesson_id;save();location.hash='lesson/'+context.lesson_id;render();return;}
+  const connected=window.TechPathHost.available();if(connected!==hostConnected){hostConnected=connected;render();}
+ }
+ window.addEventListener('techpath:host',applyHostContext);
+ render();applyHostContext();
  // Expose only pure validation/planning helpers to local checks, never credentials.
  window.TechPathDebug={validate,planBlocks,status,lessonCount:C.lessons.length};
 })();

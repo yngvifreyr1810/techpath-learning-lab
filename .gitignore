@@ -10,3 +10,5 @@ workstation-summary.csv
 .DS_Store
 Thumbs.db
 docs/qa/
+dist/server/
+dist/.openai/

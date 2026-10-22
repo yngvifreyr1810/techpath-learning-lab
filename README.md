@@ -1,5 +1,15 @@
 # TechPath — Personal Learning Lab
 
+## ChatGPT / Codex integration (v0.2)
+
+App có MCP server tại `/mcp` và công cụ `open_techpath` để mở UI cạnh cuộc trò chuyện. Trong plugin UI, “Nhờ review” → “Gửi vào cuộc trò chuyện này” gửi đề bài, code đã nhập, lỗi và câu hỏi qua MCP Apps `ui/message`. Phản hồi xuất hiện trong host chat, dùng model mà người học chọn ở đó. App không tạo model session riêng, không đọc lịch sử chat bằng API và không thu API key.
+
+Sites tạo plugin riêng khi publish với capability `mcp`. Sau khi cài/kết nối plugin, nhờ ChatGPT/Codex “Mở TechPath ở bài sql-proc”. Dùng trong đúng chat học hiện tại để giữ bối cảnh; mở trong chat mới không sao chép lịch sử của chat cũ.
+
+Tab web độc lập không có host bridge nên không gửi trực tiếp vào chat. Nó vẫn hỗ trợ copy ngữ cảnh và sao lưu. Browser-local state của tab web và sandbox plugin có thể tách biệt: xuất JSON ở bản web rồi nhập trong plugin nếu muốn chuyển tiến độ. Host widget-state được dùng khi được hỗ trợ; tiếp tục giữ bản JSON để sao lưu. Không có đồng bộ cloud tự động.
+
+Build Worker: `node build.mjs`. Kiểm tra: `node checks.mjs` và `node checks-mcp.mjs`. Server là ESM không dependency; build nhúng các asset UI vào Worker. Đọc `docs/integration.md` để xem ranh giới xác minh.
+
 Không gian học kỹ năng công nghệ cho người bắt đầu với Information Systems, SQL và Windows troubleshooting. Giao diện tiếng Việt, thuật ngữ tiếng Anh, dark mode. Không yêu cầu API key hoặc cài thư viện cho app.
 
 ## Chạy trên PC hoặc laptop
