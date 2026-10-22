@@ -16,6 +16,10 @@ Follow-up messages rely on the persistent server conversation instead of appendi
 
 Verification: v0.3 does not run automated tests or a sample paid/plan-consuming review. Validate the live model response by using the review button after connection; deployment success only establishes publication, not successful model inference.
 
+### Missing-rollout recovery (v0.3.2)
+
+Thread allocation alone does not establish that a durable rollout exists. New mappings are persisted only after a completed answer. A legacy mapping that fails `thread/resume` with the specific `no rollout found for thread id` error is removed and replaced before any model turn starts. Other resume/start/auth/quota failures are surfaced without retrying inference. The browser sends a bounded `contextPrompt` alongside follow-ups; the connector injects it only for a newly created conversation, so recovery cannot send an out-of-context follow-up. Completed inference is reported as completed even if saving the session mapping fails, with a separate persistence warning. Browser drafts and visible history are preserved.
+
 ## Architecture
 
 Sites private access gate -> Worker `/mcp` -> read-only lesson/profile tools + MCP Apps UI resource. UI runs the same curriculum and local learning flow. A deliberate button click previews and sends a message through the MCP Apps host bridge. The host's current conversation supplies the assistant and selected model; the app never selects a replacement model or creates a paid API request.

@@ -36,7 +36,8 @@ export class LocalCodex {
  });}
  fail(error){this.starting=null;this.loaded.clear();for(const p of this.pending.values()){clearTimeout(p.timer);p.reject(error);}this.pending.clear();for(const fn of this.listeners)fn({method:'techpath/disconnected',params:{message:error.message}});}
  async status(){await this.init();const r=await this.rpc('account/read',{refreshToken:false});const ok=r.account?.type==='chatgpt';return {connected:ok,model:MODEL,effort:'low',message:ok?'Codex đã đăng nhập bằng ChatGPT. Dùng hạn mức của gói hiện có.':'Cần đăng nhập Codex bằng tài khoản ChatGPT (codex login). TechPath không dùng API key.'};}
- async review({clientId,lessonId,prompt},emit,signal){
+ async saveSessions(){await writeFile(path.join(this.folder,'sessions.tmp'),JSON.stringify(this.sessions));await rename(path.join(this.folder,'sessions.tmp'),path.join(this.folder,'sessions.json'));}
+ async review({clientId,lessonId,prompt,contextPrompt},emit,signal){
   if(this.busy)throw new Error('Gia sư đang trả lời. Hãy chờ xong trước khi gửi tiếp.');
   this.busy=true;let listener,threadId,turnId,aborted=false;
   const abort=()=>{aborted=true;if(threadId&&turnId)this.rpc('turn/interrupt',{threadId,turnId}).catch(()=>{});};
@@ -45,9 +46,20 @@ export class LocalCodex {
    const status=await this.status();if(!status.connected)throw new Error(status.message);
    const key=clientId+':'+lessonId;
    const options={model:MODEL,modelProvider:'openai',approvalPolicy:'never',sandbox:'read-only',cwd:this.folder,baseInstructions:INSTRUCTIONS,developerInstructions:INSTRUCTIONS,config:{model_reasoning_effort:'low',web_search:'disabled',features:{shell_tool:false},mcp_servers:{}}};
-   threadId=this.sessions[key];
-   if(threadId&&!this.loaded.has(threadId))await this.rpc('thread/resume',{...options,threadId,excludeTurns:true});
-   if(!threadId){const r=await this.rpc('thread/start',options);threadId=r.thread.id;this.sessions[key]=threadId;await writeFile(path.join(this.folder,'sessions.tmp'),JSON.stringify(this.sessions));await rename(path.join(this.folder,'sessions.tmp'),path.join(this.folder,'sessions.json'));}
+   threadId=this.sessions[key];let recovered=false,created=false;
+   if(threadId&&!this.loaded.has(threadId)){
+    try{await this.rpc('thread/resume',{...options,threadId,excludeTurns:true});}
+    catch(error){
+     // Recovery is allowed only for a missing rollout, before starting inference.
+     // Auth, permission, quota and uncertain turn errors must never trigger a retry.
+     if(!/no rollout found for thread id/i.test(error.message))throw error;
+     delete this.sessions[key];this.loaded.delete(threadId);threadId=null;recovered=true;
+     await this.saveSessions();
+    }
+   }
+   if(!threadId){const r=await this.rpc('thread/start',{...options,ephemeral:false});threadId=r.thread.id;this.sessions[key]=threadId;created=true;}
+   const inputPrompt=created&&contextPrompt&&!prompt.startsWith(contextPrompt)?contextPrompt+'\n\n'+prompt:prompt;
+   if(inputPrompt.length>100000)throw new Error('Ngữ cảnh quá dài. Giữ đoạn code và câu hỏi liên quan rồi gửi lại.');
    this.loaded.add(threadId);if(aborted)throw new Error('Đã dừng trước khi gửi.');
    const messages=new Map();let complete,fail;
    const finished=new Promise((resolve,reject)=>{complete=resolve;fail=reject;});
@@ -66,10 +78,17 @@ export class LocalCodex {
    };
    this.listeners.add(listener);
    // Keep read-only execution. The current server rejects the retired readOnly.access field.
-   const result=await this.rpc('turn/start',{threadId,model:MODEL,effort:'low',input:[{type:'text',text:prompt}],approvalPolicy:'never',sandboxPolicy:{type:'readOnly'}});
+   const result=await this.rpc('turn/start',{threadId,model:MODEL,effort:'low',input:[{type:'text',text:inputPrompt}],approvalPolicy:'never',sandboxPolicy:{type:'readOnly'}});
    turnId=result.turn.id;if(aborted)abort();
    let deadline;const timeout=new Promise((_,reject)=>{deadline=setTimeout(()=>{abort();reject(new Error('Phản hồi quá lâu. Đã yêu cầu dừng; không tự gửi lại.'));},240000);});
-   try{const answer=await Promise.race([finished,timeout]);if(!answer.trim())throw new Error('Codex kết thúc nhưng chưa có câu trả lời.');emit({type:'done',text:answer,model:MODEL});}finally{clearTimeout(deadline);}
+   try{
+    const answer=await Promise.race([finished,timeout]);if(!answer.trim())throw new Error('Codex kết thúc nhưng chưa có câu trả lời.');
+    // A newly allocated thread id is not proof that a resumable rollout exists.
+    // Persist the mapping only after a completed answer. Never turn a disk-save
+    // failure into a retry of an already completed model request.
+    let persistenceWarning=null;try{await this.saveSessions();}catch{persistenceWarning='Đã có phản hồi nhưng chưa lưu được liên kết phiên trên máy. Hãy giữ bản sao lưu JSON.';}
+    emit({type:'done',text:answer,model:MODEL,sessionRecovered:recovered,persistenceWarning});
+   }finally{clearTimeout(deadline);}
   }finally{if(listener)this.listeners.delete(listener);signal?.removeEventListener('abort',abort);this.busy=false;}
  }
  close(){this.proc?.kill();}
