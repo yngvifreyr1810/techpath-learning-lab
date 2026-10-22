@@ -6,6 +6,16 @@ import {existsSync} from 'node:fs';
 
 const BASE='http://127.0.0.1:20128/v1';
 
+export const ACTIVE_ANTIGRAVITY_MODELS = {
+ 'ag/gemini-3.8-flash-low': 'Gemini 3.8 Flash (Low)',
+ 'ag/gemini-3.8-flash': 'Gemini 3.8 Flash',
+ 'ag/gemini-3.8-flash-medium': 'Gemini 3.8 Flash (Medium)',
+ 'ag/gemini-3.8-flash-high': 'Gemini 3.8 Flash (High)',
+ 'ag/claude-sonnet-4-6': 'Claude Sonnet 4.6 (Thinking)',
+ 'ag/claude-opus-4-6-thinking': 'Claude Opus 4.6 (Thinking)',
+ 'ag/gpt-oss-120b-medium': 'GPT-OSS 120B (Medium)'
+};
+
 let discoveredKey = null;
 async function resolveApiKey(){
  if(process.env.TECHPATH_9ROUTER_API_KEY) return process.env.TECHPATH_9ROUTER_API_KEY;
@@ -45,13 +55,17 @@ export async function routerStatus(){
   const r = await fetch(BASE+'/models', {headers, signal: AbortSignal.timeout(10000)});
   if(!r.ok) return {connected:false, models:[], message: r.status===401 ? '9Router yêu cầu API key. Cấu hình TECHPATH_9ROUTER_API_KEY cho bộ kết nối.' : '9Router chưa trả danh sách model.'};
   const body = await r.json();
-  const models = (body.data||[])
-   .filter(m => typeof m.id === 'string' && /gemini/i.test(m.id))
-   .map(m => ({id: m.id, label: m.id.replace(/^ag\//, '')}));
+  const rawList = (body.data||[]).map(m => m.id);
+  
+  // Filter only active models that are confirmed working in Antigravity
+  const models = Object.entries(ACTIVE_ANTIGRAVITY_MODELS)
+   .filter(([id]) => rawList.includes(id))
+   .map(([id, label]) => ({id, label}));
+
   return {
    connected: models.length > 0,
    models,
-   message: models.length ? 'Đã kết nối Gemini (Antigravity) qua 9Router.' : 'Mở 9Router → Providers để kết nối Gemini / Antigravity.'
+   message: models.length ? 'Đã kết nối Antigravity qua 9Router (Gemini, Claude, GPT-OSS).' : 'Mở 9Router → Providers để kết nối Antigravity.'
   };
  }catch{
   return {connected: false, models: [], message: 'Chưa mở 9Router. Mở shortcut 9Router trên Desktop rồi kết nối lại.'};
@@ -61,8 +75,8 @@ export async function routerStatus(){
 export async function routerReview(request, emit, signal){
  const catalog = await routerStatus();
  if(!catalog.connected) throw new Error(catalog.message);
- const model = request.model || catalog.models.find(m => /3\.8-flash/i.test(m.id))?.id || catalog.models[0]?.id;
- if(!catalog.models.some(m => m.id === model)) throw new Error('Model Gemini không có trong danh sách 9Router hiện tại. Chọn lại model.');
+ const model = request.model || catalog.models.find(m => /3\.8-flash-low/i.test(m.id))?.id || catalog.models[0]?.id;
+ if(!catalog.models.some(m => m.id === model)) throw new Error(`Model ${model} không có trong danh sách khả dụng của Antigravity/9Router. Chọn lại model.`);
 
  let input = sharedContext(request);
  if(request.grading) input += '\n\nChỉ trả JSON, không markdown hoặc code fence, theo schema: ' + JSON.stringify(request.grading.schema);
@@ -88,12 +102,12 @@ export async function routerReview(request, emit, signal){
 
  if(!response.ok){
   if(response.status === 401 || response.status === 403){
-   throw new Error('9Router/Gemini chưa xác thực. Mở 9Router → Providers để đăng nhập Gemini/Antigravity; nếu gateway yêu cầu key, cấu hình TECHPATH_9ROUTER_API_KEY.');
+   throw new Error('9Router/Antigravity chưa xác thực. Mở 9Router → Providers để đăng nhập Antigravity; nếu gateway yêu cầu key, cấu hình TECHPATH_9ROUTER_API_KEY.');
   }
   if(response.status === 429){
-   throw new Error('Gemini/Antigravity đang hết hạn mức hoặc bị giới hạn lượt gọi. Không tự chuyển sang Codex.');
+   throw new Error('Model này đang hết hạn mức hoặc bị giới hạn lượt gọi. Đổi sang model khác (ví dụ Gemini 3.8 Flash Low).');
   }
-  throw new Error('9Router/Gemini trả lỗi HTTP ' + response.status + '. Xem trạng thái provider trong 9Router; yêu cầu không được tự gửi lại.');
+  throw new Error('9Router/Antigravity trả lỗi HTTP ' + response.status + '. Kiểm tra model hoặc trạng thái provider trong 9Router.');
  }
 
  let answer = '';
@@ -108,7 +122,7 @@ export async function routerReview(request, emit, signal){
    const data = line.slice(5).trim();
    if(!data || data === '[DONE]') return;
    const m = JSON.parse(data);
-   if(m.error) throw new Error('Gemini báo lỗi trong lúc phản hồi. Kiểm tra provider trong 9Router.');
+   if(m.error) throw new Error('AI báo lỗi trong lúc phản hồi. Kiểm tra provider trong 9Router.');
    const text = m.choices?.[0]?.delta?.content;
    if(typeof text === 'string'){
     answer += text;
@@ -129,16 +143,20 @@ export async function routerReview(request, emit, signal){
   if(buffer.trim()) event(buffer);
  }
 
- if(!answer.trim()) throw new Error('Gemini chưa trả nội dung. Chưa xác nhận bài hoặc tự gửi lại.');
+ if(!answer.trim()) throw new Error('AI chưa trả nội dung. Chưa xác nhận bài hoặc tự gửi lại.');
  const assessment = request.grading
   ? parseAssessment(answer.trim().replace(/^```(?:json)?\s*([\s\S]*?)\s*```$/, '$1'), request.grading)
   : null;
+
+ let providerName = 'Gemini';
+ if(/claude/i.test(model)) providerName = 'Claude';
+ else if(/gpt-oss/i.test(model)) providerName = 'GPT-OSS';
 
  emit({
   type: 'done',
   text: assessment ? assessmentText(assessment) : answer,
   assessment,
   model,
-  provider: 'gemini'
+  provider: providerName
  });
 }

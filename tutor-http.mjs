@@ -19,12 +19,12 @@ export async function tutorRoute(req, res, pathname){
    const codex = await tutor.status().catch(e => ({connected: false, message: e.message, model: 'gpt-6.1-sol'}));
    const router = await routerStatus().catch(e => ({connected: false, models: [], message: e.message}));
    const connected = codex.connected || router.connected;
-   const defaultProvider = router.connected ? 'gemini' : (codex.connected ? 'codex' : 'gemini');
+   const defaultProvider = router.connected ? 'antigravity' : (codex.connected ? 'codex' : 'antigravity');
    json(200, {
     token,
     connected,
     message: router.connected && codex.connected
-     ? 'Đã kết nối cả Codex và Gemini (9Router). Bạn có thể chọn AI trong khung gia sư.'
+     ? 'Đã kết nối cả Codex và Antigravity (9Router). Bạn có thể chọn AI trong khung gia sư.'
      : (router.connected ? router.message : codex.message),
     model: codex.model,
     effort: codex.effort,
@@ -80,9 +80,7 @@ export async function tutorRoute(req, res, pathname){
   const history = Array.isArray(data.history)
    ? data.history.filter(m => m && ['user', 'assistant'].includes(m.role) && typeof m.text === 'string').slice(-20)
    : [];
-  const provider = data.provider === 'gemini' || data.provider === 'codex'
-   ? data.provider
-   : (data.model?.startsWith('ag/') ? 'gemini' : 'codex');
+  const provider = data.provider === 'codex' ? 'codex' : 'antigravity';
   const model = typeof data.model === 'string' && data.model.length <= 80 ? data.model : undefined;
 
   let grading = null;
@@ -110,7 +108,7 @@ export async function tutorRoute(req, res, pathname){
 
   const requestPayload = {...data, grading, history, provider, model};
   try{
-   if(provider === 'gemini'){
+   if(provider === 'antigravity'){
     await routerReview(requestPayload, emit, controller.signal);
    }else{
     await tutor.review(requestPayload, emit, controller.signal);

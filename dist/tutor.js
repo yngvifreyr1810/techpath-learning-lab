@@ -6,12 +6,14 @@
  el.className = 'tutor-panel';
  el.hidden = true;
  el.setAttribute('aria-label', 'Gia sư TechPath');
- el.innerHTML = `<header class="tutor-heading"><div><span class="eyebrow">GIA SƯ TECHPATH</span><h2>Gỡ một nút thắt.</h2></div><button class="button ghost small" data-tutor-close aria-label="Đóng khung gia sư">✕</button></header><div class="tutor-ai-bar"><label for="tutor-provider">Gia sư:</label><select id="tutor-provider"><option value="gemini">Gemini (Antigravity · 9Router)</option><option value="codex">Codex (ChatGPT)</option></select><select id="tutor-model" aria-label="Chọn model"></select></div><p class="tutor-connection" role="status">Kết nối bộ gia sư trên máy khi bạn gửi bài.</p><div class="tutor-setup" hidden><p>Chạy <strong>Start-TechPath.cmd</strong> trên máy này, rồi bấm kết nối lại. Hỗ trợ Codex (ChatGPT) và Gemini (Antigravity) qua 9Router.</p><p>Nếu dùng Gemini, đảm bảo 9Router đang chạy (port 20128). Nếu trình duyệt chặn, mở bản TechPath tại <a href="http://127.0.0.1:4173/#lesson/sql-proc" target="_blank" rel="noopener">127.0.0.1:4173</a>.</p><button class="button secondary small" data-tutor-connect>Kết nối lại</button></div><div class="tutor-messages" aria-live="polite" aria-relevant="additions text"></div><div class="tutor-compose"><label for="tutor-followup">Hỏi tiếp về bài này</label><textarea id="tutor-followup" rows="3" placeholder="Mình nghĩ là do… Có phải mình cần kiểm tra…?"></textarea><div class="actions"><button class="button small" data-tutor-send>Gửi câu hỏi</button><button class="button secondary small" data-tutor-stop hidden>Dừng</button></div><p class="save-meta">Gia sư hỗ trợ Codex & Gemini qua 9Router. Dùng chung lịch sử học tập; không đọc SSMS hay chat thiết kế app.</p></div>`;
+ el.innerHTML = `<header class="tutor-heading"><div><span class="eyebrow">GIA SƯ TECHPATH</span><h2>Gỡ một nút thắt.</h2></div><button class="button ghost small" data-tutor-close aria-label="Đóng khung gia sư">✕</button></header><div class="tutor-ai-bar"><label for="tutor-provider">Gia sư:</label><select id="tutor-provider"><option value="antigravity">Antigravity (Gemini · Claude · GPT-OSS)</option><option value="codex">Codex (ChatGPT)</option></select><select id="tutor-model" aria-label="Chọn model"></select></div><p class="tutor-connection" role="status">Kết nối bộ gia sư trên máy khi bạn gửi bài.</p><div class="tutor-setup" hidden><p>Chạy <strong>Start-TechPath.cmd</strong> trên máy này, rồi bấm kết nối lại. Hỗ trợ Codex (ChatGPT) và Antigravity (Gemini, Claude, GPT-OSS) qua 9Router.</p><p>Đảm bảo 9Router đang chạy (port 20128). Nếu trình duyệt chặn, mở bản TechPath tại <a href="http://127.0.0.1:4173/#lesson/sql-proc" target="_blank" rel="noopener">127.0.0.1:4173</a>.</p><button class="button secondary small" data-tutor-connect>Kết nối lại</button></div><div class="tutor-messages" aria-live="polite" aria-relevant="additions text"></div><div class="tutor-compose"><label for="tutor-followup">Hỏi tiếp về bài này</label><textarea id="tutor-followup" rows="3" placeholder="Mình nghĩ là do… Có phải mình cần kiểm tra…?"></textarea><div class="actions"><button class="button small" data-tutor-send>Gửi câu hỏi</button><button class="button secondary small" data-tutor-stop hidden>Dừng</button></div><p class="save-meta">Gia sư hỗ trợ Codex & Antigravity (Gemini, Claude, GPT-OSS) qua 9Router. Dùng chung lịch sử học tập.</p></div>`;
  document.body.append(el);
 
  const q = s => el.querySelector(s), historyArea = q('.tutor-messages'), status = q('.tutor-connection'), setup = q('.tutor-setup');
- let data = {version: 1, clientId: crypto.randomUUID(), histories: {}, selectedProvider: 'gemini', selectedModel: 'ag/gemini-3.8-flash'}, context = null, token = null, busy = false, controller = null, serverStatus = null;
+ let data = {version: 1, clientId: crypto.randomUUID(), histories: {}, selectedProvider: 'antigravity', selectedModel: 'ag/gemini-3.8-flash-low'}, context = null, token = null, busy = false, controller = null, serverStatus = null;
  const submittedContexts = new Map();
+
+ function isAntigravity(p){ return p === 'antigravity' || p === 'gemini'; }
 
  function validate(raw){
   if(!raw || raw.version !== 1 || !raw.histories || typeof raw.histories !== 'object' || Array.isArray(raw.histories)) throw new Error('Lịch sử gia sư không hợp lệ.');
@@ -19,8 +21,8 @@
    version: 1,
    clientId: /^[a-f0-9-]{36}$/i.test(raw.clientId || '') ? raw.clientId : crypto.randomUUID(),
    histories: {},
-   selectedProvider: typeof raw.selectedProvider === 'string' && ['gemini', 'codex'].includes(raw.selectedProvider) ? raw.selectedProvider : 'gemini',
-   selectedModel: typeof raw.selectedModel === 'string' && raw.selectedModel.length <= 80 ? raw.selectedModel : 'ag/gemini-3.8-flash'
+   selectedProvider: isAntigravity(raw.selectedProvider) ? 'antigravity' : (raw.selectedProvider === 'codex' ? 'codex' : 'antigravity'),
+   selectedModel: typeof raw.selectedModel === 'string' && raw.selectedModel.length <= 80 ? raw.selectedModel : 'ag/gemini-3.8-flash-low'
   };
   for(const [id, messages] of Object.entries(raw.histories).slice(0, 100)){
    if(/^[a-z0-9-]{1,60}$/.test(id) && Array.isArray(messages)){
@@ -54,13 +56,18 @@
   const providerSelect = q('#tutor-provider');
   const modelSelect = q('#tutor-model');
   if(!providerSelect || !modelSelect) return;
-  providerSelect.value = data.selectedProvider || 'gemini';
+  const currentIsAnti = isAntigravity(data.selectedProvider);
+  providerSelect.value = currentIsAnti ? 'antigravity' : 'codex';
   modelSelect.replaceChildren();
-  if(data.selectedProvider === 'gemini'){
+  if(currentIsAnti){
    const models = serverStatus?.router?.models?.length ? serverStatus.router.models : [
-    {id: 'ag/gemini-3.8-flash', label: 'gemini-3.8-flash'},
-    {id: 'ag/gemini-3.7-flash-high', label: 'gemini-3.7-flash-high'},
-    {id: 'ag/gemini-3.1-pro-high', label: 'gemini-3.1-pro-high'}
+    {id: 'ag/gemini-3.8-flash-low', label: 'Gemini 3.8 Flash (Low)'},
+    {id: 'ag/gemini-3.8-flash', label: 'Gemini 3.8 Flash'},
+    {id: 'ag/gemini-3.8-flash-medium', label: 'Gemini 3.8 Flash (Medium)'},
+    {id: 'ag/gemini-3.8-flash-high', label: 'Gemini 3.8 Flash (High)'},
+    {id: 'ag/claude-sonnet-4-6', label: 'Claude Sonnet 4.6 (Thinking)'},
+    {id: 'ag/claude-opus-4-6-thinking', label: 'Claude Opus 4.6 (Thinking)'},
+    {id: 'ag/gpt-oss-120b-medium', label: 'GPT-OSS 120B (Medium)'}
    ];
    for(const m of models){
     const opt = document.createElement('option');
@@ -71,7 +78,7 @@
    if(data.selectedModel && models.some(m => m.id === data.selectedModel)){
     modelSelect.value = data.selectedModel;
    }else if(models.length){
-    const def = models.find(m => /3\.8-flash/i.test(m.id))?.id || models[0].id;
+    const def = models.find(m => /3\.8-flash-low/i.test(m.id))?.id || models[0].id;
     modelSelect.value = def;
     data.selectedModel = def;
     save();
@@ -105,7 +112,7 @@
     if(m.provider){
      const badge = document.createElement('span');
      badge.className = 'tutor-badge';
-     badge.textContent = m.provider === 'gemini' ? (m.model ? m.model.replace(/^ag\//, '') : 'Gemini') : 'Codex';
+     badge.textContent = m.provider;
      label.append(badge);
     }
    }else{
@@ -156,9 +163,9 @@
    serverStatus = result;
    if(!data.selectedProvider && result.defaultProvider) data.selectedProvider = result.defaultProvider;
    updateAiSelector();
-   const cur = data.selectedProvider || 'gemini';
-   if(cur === 'gemini'){
-    status.textContent = result.router?.connected ? result.router.message : (result.message || 'Gemini đã sẵn sàng.');
+   const curIsAnti = isAntigravity(data.selectedProvider);
+   if(curIsAnti){
+    status.textContent = result.router?.connected ? result.router.message : (result.message || 'Antigravity đã sẵn sàng.');
    }else{
     status.textContent = result.codex?.connected ? result.codex.message : (result.message || 'Codex đã sẵn sàng.');
    }
@@ -178,15 +185,17 @@
   busy = true;
   controls();
   let answer = null, done = false, completionNotice = '', assessment = null;
-  const currentProvider = data.selectedProvider || 'gemini';
-  const currentModel = currentProvider === 'gemini' ? (data.selectedModel || 'ag/gemini-3.8-flash') : 'gpt-6.1-sol';
+  const currentIsAnti = isAntigravity(data.selectedProvider);
+  const currentProvider = currentIsAnti ? 'antigravity' : 'codex';
+  const currentModel = currentIsAnti ? (data.selectedModel || 'ag/gemini-3.8-flash-low') : 'gpt-6.1-sol';
 
   try{
    if(!token && !(await connect())) return;
    add('user', label);
+   const modelLabel = currentIsAnti ? (q('#tutor-model')?.selectedOptions?.[0]?.text || 'Antigravity') : 'Codex';
    status.textContent = gradingSubmission
-    ? `AI (${currentProvider === 'gemini' ? 'Gemini' : 'Codex'}) đang đối chiếu bài làm với yêu cầu và kết quả chạy…`
-    : `Gia sư (${currentProvider === 'gemini' ? 'Gemini' : 'Codex'}) đang đọc bài làm…`;
+    ? `AI (${modelLabel}) đang đối chiếu bài làm với yêu cầu và kết quả chạy…`
+    : `Gia sư (${modelLabel}) đang đọc bài làm…`;
    controller = new AbortController();
 
    const recentHistory = history().slice(-16).map(m => ({role: m.role, text: m.text}));
@@ -223,7 +232,7 @@
     if(m.type === 'delta'){ answer.text += m.text; render(); }
     if(m.type === 'done'){
      answer.text = m.text;
-     answer.provider = m.provider || currentProvider;
+     answer.provider = m.provider || (currentIsAnti ? 'Antigravity' : 'Codex');
      answer.model = m.model || currentModel;
      assessment = m.assessment || null;
      done = true;
@@ -266,8 +275,8 @@
   updateAiSelector();
   save();
   if(serverStatus){
-   if(data.selectedProvider === 'gemini'){
-    status.textContent = serverStatus.router?.connected ? serverStatus.router.message : '9Router chưa kết nối Gemini.';
+   if(isAntigravity(data.selectedProvider)){
+    status.textContent = serverStatus.router?.connected ? serverStatus.router.message : '9Router chưa kết nối Antigravity.';
    }else{
     status.textContent = serverStatus.codex?.connected ? serverStatus.codex.message : 'Codex chưa kết nối.';
    }
