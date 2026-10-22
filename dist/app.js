@@ -117,7 +117,7 @@ Chỉ payment Succeeded là thanh toán thành công.</pre></details>${stale?'<p
  document.addEventListener('click',async e=>{
   const b=e.target.closest('button');if(!b)return;
   if(b.id==='modal-close')$('#modal').close();
-  if(b.id==='open-tutor'){window.TechPathTutor.open(window.TechPathTutorContext());return;}
+  if(b.id==='open-tutor'||b.id==='open-tutor-top'||b.classList.contains('open-tutor-btn')){window.TechPathTutor.open(window.TechPathTutorContext());return;}
   if(b.id==='backup-top'||b.hasAttribute('data-backup'))backup();
   if(b.hasAttribute('data-run-sql')){try{await runInApp(currentLesson());}catch(error){toast(error.message);}return;}
   if(b.hasAttribute('data-stop-sql')){window.TechPathSql.stop();return;}
