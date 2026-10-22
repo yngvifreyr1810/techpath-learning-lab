@@ -195,7 +195,7 @@
    add('user', label);
    const modelLabel = currentIsAnti ? (q('#tutor-model')?.selectedOptions?.[0]?.text || 'Antigravity') : 'Codex';
    status.textContent = gradingSubmission
-    ? `AI (${modelLabel}) đang đối chiếu bài làm với yêu cầu và kết quả chạy…`
+    ? `AI (${modelLabel}) đang review bài và giải đáp phần bạn hỏi…`
     : `Gia sư (${modelLabel}) đang đọc bài làm…`;
    controller = new AbortController();
 
@@ -239,6 +239,9 @@
      completionNotice = m.persistenceWarning || (m.sessionRecovered ? 'Đã mở phiên thay thế và gửi lại ngữ cảnh bài làm vì phiên cũ chưa có lịch sử lưu.' : '');
      save();
      render();
+     // Start reading the new answer at its beginning, even for a longer explanation.
+     const latest = historyArea.lastElementChild;
+     if(latest) historyArea.scrollTop += latest.getBoundingClientRect().top - historyArea.getBoundingClientRect().top;
     }
     if(m.type === 'error') throw new Error(m.text);
    };
@@ -255,7 +258,7 @@
    }
    if(buffer.trim()) event(buffer);
    if(!done) throw new Error('Kết nối ngắt trước khi phản hồi hoàn tất. Không tự gửi lại.');
-   status.textContent = completionNotice || 'Đã review. Bạn có thể suy luận và hỏi tiếp ngay bên dưới.';
+   status.textContent = completionNotice || (assessment?.answers?.length ? 'Đã review và giải đáp phần bạn hỏi.' : 'Đã review. Bạn có thể hỏi tiếp bên dưới.');
    return {assessment};
   }catch(error){
    if(answer && !answer.text) history().pop();

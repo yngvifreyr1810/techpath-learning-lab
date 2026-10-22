@@ -58,4 +58,20 @@ const status = await routerStatus();
 assert.equal(typeof status.connected, 'boolean');
 assert.ok(Array.isArray(status.models));
 
-console.log('PASS: 15 lessons; 226 duration plans; cross-lesson draft isolation; backup round-trip/validation; all routes render; shared context & router verified.');
+// Explanations survive backup validation, render safely, and remain in the journal.
+const withAnswers=structuredClone(saved);
+withAnswers.attempts=[{id:'review-test',lessonId:'sql-proc',at:new Date().toISOString(),code:'SELECT 1;',output:'1',notes:'Chưa học stored procedure.',question:'GO làm gì?',mode:'standard',assessment:'ai_retry',grading:{verdict:'retry',summary:'Cần sửa.',hint:'Kiểm tra lại.',optimization:'',answers:[{topic:'GO',text:'GO tách nhóm lệnh gửi tới SQL Server.'},{topic:'<img src=x onerror=alert(1)>',text:'<script>alert(1)</script>'}],criteria:[]}}];
+const answerBackup=debug.validate(withAnswers);
+assert.deepEqual(JSON.parse(JSON.stringify(answerBackup.attempts[0].grading.answers)),withAnswers.attempts[0].grading.answers);
+const legacy=structuredClone(withAnswers);delete legacy.attempts[0].grading.answers;
+assert.equal(debug.validate(legacy).attempts[0].grading.answers.length,0);
+ctx.localStorage.getItem=()=>JSON.stringify(withAnswers);
+ctx.location.hash='#lesson/sql-proc';
+vm.runInContext(readFileSync(new URL('./dist/app.js',import.meta.url),'utf8'),ctx);
+await docHandlers.click({target:{closest:()=>({classList:{contains:()=>false},dataset:{lessonTab:'practice'},hasAttribute:key=>key==='data-lesson-tab'})}});
+assert.ok(node('#main').innerHTML.includes('Giải thích phần bạn hỏi'));
+assert.ok(node('#main').innerHTML.includes('GO tách nhóm lệnh'));
+assert.ok(!node('#main').innerHTML.includes('<img src=x'));
+ctx.location.hash='#notebook';winHandlers.hashchange();
+assert.ok(node('#main').innerHTML.includes('GO tách nhóm lệnh'));
+console.log('PASS: 15 lessons; duration plans; draft isolation; old/new backups; explanations persist and render safely; routes, context and router status.');

@@ -47,7 +47,7 @@ export class LocalCodex {
    const inputPrompt=sharedContext(request);
    // Native persistent threads can be claimed by another desktop writer.
    // A fresh ephemeral thread has one owner; shared memory lives in TechPath.
-   const r=await this.rpc('thread/start',{model:MODEL,modelProvider:'openai',approvalPolicy:'never',sandbox:'read-only',cwd:this.folder,baseInstructions:TUTOR_INSTRUCTIONS,ephemeral:true,config:{model_reasoning_effort:'low',model_verbosity:'low',web_search:'disabled',features:{shell_tool:false},mcp_servers:{}}});
+   const r=await this.rpc('thread/start',{model:MODEL,modelProvider:'openai',approvalPolicy:'never',sandbox:'read-only',cwd:this.folder,baseInstructions:TUTOR_INSTRUCTIONS,ephemeral:true,config:{model_reasoning_effort:'low',model_verbosity:grading&&!grading.submission.question.trim()&&!grading.submission.notes.trim()?'low':'medium',web_search:'disabled',features:{shell_tool:false},mcp_servers:{}}});
    threadId=r.thread.id;if(aborted)throw new Error('Đã dừng trước khi gửi.');
    const messages=new Map();let complete,fail;
    const finished=new Promise((resolve,reject)=>{complete=resolve;fail=reject;});
