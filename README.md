@@ -1,5 +1,17 @@
 # TechPath — Personal Learning Lab
 
+## Gia sư trực tiếp (v0.3)
+
+1. Trên Windows, mở `Start-TechPath.cmd` trong thư mục project. Cần Node.js 20+ và Codex đã đăng nhập bằng ChatGPT. Bộ khởi động tìm Codex CLI hoặc bản đi kèm desktop app.
+2. Mở bài, nhập code/kết quả/suy luận/câu hỏi rồi bấm **Nhờ review**. App đọc các ô đó và trả lời trong khung bên cạnh. Hỏi tiếp ngay trong khung; không cần copy prompt.
+3. Nếu trình duyệt hỏi quyền mạng cục bộ, cho phép TechPath kết nối với bộ gia sư trên máy. Nếu bị chặn, dùng `http://127.0.0.1:4173`, xuất/nhập JSON để chuyển tiến độ từ bản web. Không mở cổng ra Internet.
+
+Dùng `gpt-6.1-sol` / Light (`low`) với hạn mức Codex của tài khoản ChatGPT đã đăng nhập. Không yêu cầu API key và không tự đổi sang model khác. Hết hạn mức hoặc chưa đăng nhập thì hiển thị lỗi, không tự mua thêm. Mỗi máy cần chạy bộ kết nối riêng.
+
+Gia sư nhớ trao đổi riêng theo từng bài trên máy hiện tại, kèm hồ sơ học và nguyên tắc gợi ý từng bước. Nó không có toàn bộ lịch sử chat thiết kế app. Lịch sử hiển thị đi theo bản sao lưu JSON; lịch sử Codex nằm trên máy không tự chuyển theo. Chỉ gửi khi người học bấm nút. App không đọc trực tiếp SSMS.
+
+Chạy thủ công: `node server.mjs`. Dừng bằng Ctrl+C nếu chạy trong terminal. Bộ khởi động chạy nền để không giữ cửa sổ terminal; có thể kết thúc đúng tiến trình `node server.mjs` trong Task Manager hoặc khởi động lại máy. `.techpath-local/` là dữ liệu riêng đã được bỏ qua trong Git.
+
 ## ChatGPT / Codex integration (v0.2)
 
 App có MCP server tại `/mcp` và công cụ `open_techpath` để mở UI cạnh cuộc trò chuyện. Trong plugin UI, “Nhờ review” → “Gửi vào cuộc trò chuyện này” gửi đề bài, code đã nhập, lỗi và câu hỏi qua MCP Apps `ui/message`. Phản hồi xuất hiện trong host chat, dùng model mà người học chọn ở đó. App không tạo model session riêng, không đọc lịch sử chat bằng API và không thu API key.
@@ -29,7 +41,7 @@ Mở `http://localhost:4173`. Dừng server bằng Ctrl+C trong terminal. Có th
 3. Đọc đề, làm trong SSMS. App không kết nối SQL Server hoặc chạy SQL.
 4. Dán code/kết quả, hoặc nhập file `.sql` đã lưu (hỗ trợ UTF-8/UTF-16).
 5. Nếu bí, mở một gợi ý. Các gợi ý là nội dung soạn sẵn, không phải phản hồi AI.
-6. “Nhờ review” tạo ngữ cảnh để copy vào Copilot Chat trong SSMS hoặc chat bạn đang dùng.
+6. “Nhờ review” đọc bài làm và mở phản hồi Codex trong khung gia sư. Bộ kết nối phải chạy trên máy.
 7. Tự kiểm tra theo checklist, ghi nhận mức độc lập. Lần thử cũ nằm trong Nhật ký.
 8. Kết thúc buổi và xuất sao lưu trước khi đổi máy.
 
@@ -41,7 +53,7 @@ Dataset SupportLab tải từ Cài đặt hoặc bài SQL: 6 customers, 8 orders
 
 ## AI và chi phí
 
-App không gọi API AI, không yêu cầu subscription trả phí, không lưu token. Review được dùng theo yêu cầu của người học. Copilot Chat trong SSMS 22+ có thể đọc context editor; Copilot Free có giới hạn và tính khả dụng theo tài khoản. Kiểm tra gói trên tài khoản, không bật paid overage để làm lab này.
+Gia sư dùng Codex App Server với tài khoản ChatGPT hiện có, chịu hạn mức của gói. Không dùng API key hoặc cơ chế mua thêm tự động. Copilot Chat trong SSMS là lựa chọn riêng, không phải backend của nút review mới.
 
 Hướng dẫn chính thức:
 
