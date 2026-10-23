@@ -29,7 +29,7 @@ Các combo fallback đang có được giữ nguyên. Khi muốn dùng riêng qu
 
 Qua 9Router → OpenCode, Copilot cung cấp suy luận; công cụ đọc/sửa/chạy lệnh thuộc OpenCode. Các khả năng native như tích hợp PR/issue, autocomplete, Auto model selection không tự xuất hiện trong proxy. Chat riêng TechPath chỉ là chat, không được cấp công cụ sửa dự án.
 
-Trong chat riêng, bấm “Làm mới AI”, chọn “Copilot · …”. Danh sách đọc từ endpoint models của 9Router. Route dùng model trực tiếp; app không tự thử model khác khi có lỗi. Gemini/Copilot GPT-4.1, GPT-4o và GPT-5.3 Codex có lựa chọn ảnh; Local AI cần capability vision từ LM Studio. Khả năng truyền ảnh được kiểm tra bằng mock, chưa chạy inference thật qua tài khoản.
+Chat riêng chỉ hiển thị 5 lựa chọn: Local AI, Gemini Flash · Antigravity, Tiết kiệm, Codex và Đọc ảnh · Copilot. Lựa chọn cuối dùng trực tiếp gh/gpt-4.1, nhận cả chữ lẫn ảnh; các model chi tiết khác không hiện trong menu. Danh mục 9Router vẫn được đọc để kiểm tra model còn được quảng bá trước khi gửi. Route dùng model trực tiếp; app không tự thử model khác khi có lỗi. Gemini/Copilot GPT-4.1, GPT-4o và GPT-5.3 Codex có lựa chọn ảnh; Local AI cần capability vision từ LM Studio. Khả năng truyền ảnh được kiểm tra bằng mock, chưa chạy inference thật qua tài khoản.
 
 ## Quota cần hiểu đúng
 
