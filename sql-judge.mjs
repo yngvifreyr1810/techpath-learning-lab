@@ -63,7 +63,7 @@ export function judgeSql({id,run,reference,probe,code='',mode='standard'}){
  }else{
   const expectedSets=reference.results||[];
   if(run.results.length!==expectedSets.length)cases.push({name:'Số result set',passed:false,message:'Cần '+expectedSets.length+' result set; nhận '+run.results.length+'.',actual:[],expected:[]});
-  expectedSets.forEach((expected,i)=>add(expectedSets.length>1?'Rule '+(i+1):'Dataset hiện tại',run.results[i],expected,{ordered:id==='sql-cte',report:reportMode,optionalSeverity:id==='sql-report'}));
+  expectedSets.forEach((expected,i)=>add(expectedSets.length>1?'Rule '+(i+1):'Dataset hiện tại',run.results[i],expected,{ordered:id==='sql-cte'||lesson(id)?.ordered===true,report:reportMode,optionalSeverity:id==='sql-report'}));
  }
  const passed=cases.length>0&&cases.every(c=>c.passed),manual=id==='sql-debug'&&passed;
  return {verdict:manual?'needs_review':passed?'pass':'retry',summary:manual?'Phần SQL đúng. Ticket giải thích cần review riêng trước khi hoàn thành bài.':passed?'Đạt '+cases.length+'/'+cases.length+' kiểm tra trên dataset hiện tại.':'Chưa đạt: '+cases.filter(c=>!c.passed).length+'/'+cases.length+' kiểm tra cần sửa.',cases,basis:'Đối chiếu kết quả SQL trên database lab hiện tại; không gọi AI. Không có bộ dữ liệu ẩn.',at:new Date().toISOString()};
