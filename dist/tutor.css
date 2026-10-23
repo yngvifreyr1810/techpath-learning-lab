@@ -4,3 +4,4 @@
 @media(min-width:1450px){body.tutor-open .shell{margin-right:460px}}
 @media(max-width:600px){.tutor-panel{padding:18px;width:100vw}.tutor-heading h2{font-size:20px}}
 .review-answers{margin:16px 0;padding-top:14px;border-top:1px solid #3d4f47}.review-answers h3{font-size:16px;margin:0 0 12px}.review-answers h4{font-size:14px;margin:14px 0 5px;color:#d9c881}.review-answers p{margin:0 0 12px}
+.tutor-routing-note{font-size:.82rem;line-height:1.55;color:var(--muted,#b7c7b2);margin:.6rem 0}.tutor-ai-bar select{max-width:100%;min-width:0}.tutor-message small.save-meta{display:block;overflow-wrap:anywhere;margin-top:.65rem}

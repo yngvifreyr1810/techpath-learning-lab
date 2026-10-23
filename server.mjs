@@ -15,6 +15,7 @@ http.createServer(async(req,res)=>{
   if(req.headers.origin){res.setHeader('Access-Control-Allow-Origin',req.headers.origin);res.setHeader('Vary','Origin');}
   if(req.method==='OPTIONS'){res.writeHead(204,{'Access-Control-Allow-Methods':'GET, POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type, X-TechPath-Token','Access-Control-Allow-Private-Network':'true'});res.end();return;}
   const pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname);
+  if(pathname==='/api/health'&&req.method==='GET'){res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify({app:'techpath',protocol:1,pid:process.pid}));return;}
   if(await tutorRoute(req,res,pathname))return;
   if(await sqlRoute(req,res,pathname))return;
   if(req.method!=='GET'&&req.method!=='HEAD'){res.writeHead(405);res.end();return;}

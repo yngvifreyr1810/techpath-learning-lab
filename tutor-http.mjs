@@ -1,11 +1,13 @@
 import {LocalCodex} from './local-codex.mjs';
 import {routerStatus, routerReview} from './router-ai.mjs';
+import {localStatus,localReview} from './local-ai.mjs';
 import {sessionToken as token} from './session-access.mjs';
 import {assessmentSpec} from './assessment.mjs';
 import {executionForGrade} from './sql-lab.mjs';
 import {fileURLToPath} from 'node:url';
 
 const tutor = new LocalCodex(fileURLToPath(new URL('./.techpath-local/', import.meta.url)));
+let activeReview=false;
 
 export async function tutorRoute(req, res, pathname){
  if(!pathname.startsWith('/api/tutor/')) return false;
@@ -16,20 +18,24 @@ export async function tutorRoute(req, res, pathname){
 
  try{
   if(pathname === '/api/tutor/status' && req.method === 'GET'){
-   const codex = await tutor.status().catch(e => ({connected: false, message: e.message, model: 'gpt-6.1-sol'}));
-   const router = await routerStatus().catch(e => ({connected: false, models: [], message: e.message}));
-   const connected = codex.connected || router.connected;
-   const defaultProvider = router.connected ? 'antigravity' : (codex.connected ? 'codex' : 'antigravity');
+   const requested=new URL(req.url,'http://localhost').searchParams.get('provider');
+   const [codex,router,local]=await Promise.all([
+    !requested||requested==='codex'?tutor.status().catch(e=>({connected:false,message:e.message,model:'gpt-6.1-sol'})):Promise.resolve({connected:false,model:'gpt-6.1-sol',message:'Chọn Codex để kiểm tra đăng nhập.'}),
+    requested==='local'?Promise.resolve({connected:false,models:[],message:'Chọn 9Router để đọc danh mục workflow.'}):routerStatus(),
+    localStatus()
+   ]);
+   const connected = codex.connected || router.connected || local.connected;
+   const defaultProvider = router.connected ? 'router' : (local.connected ? 'local' : 'codex');
    json(200, {
     token,
+    serviceConnected:true,
     connected,
-    message: router.connected && codex.connected
-     ? 'Đã kết nối cả Codex và Antigravity (9Router). Bạn có thể chọn AI trong khung gia sư.'
-     : (router.connected ? router.message : codex.message),
+    message: 'Bộ kết nối TechPath đã chạy. Chọn AI hoặc workflow để học.',
     model: codex.model,
     effort: codex.effort,
     codex,
     router,
+    local,
     defaultProvider
    });
    return true;
@@ -80,8 +86,9 @@ export async function tutorRoute(req, res, pathname){
   const history = Array.isArray(data.history)
    ? data.history.filter(m => m && ['user', 'assistant'].includes(m.role) && typeof m.text === 'string').slice(-20)
    : [];
-  const provider = data.provider === 'codex' ? 'codex' : 'antigravity';
-  const model = typeof data.model === 'string' && data.model.length <= 80 ? data.model : undefined;
+  if(!['codex','router','antigravity','gemini','local'].includes(data.provider||'antigravity')){json(400,{error:'Provider không hợp lệ.'});return true;}
+  const provider=data.provider==='codex'?'codex':data.provider==='local'?'local':'router';
+  const model=typeof data.model==='string'&&data.model.length<=200?data.model:undefined;
 
   let grading = null;
   if(data.purpose === 'grade'){
@@ -96,6 +103,8 @@ export async function tutorRoute(req, res, pathname){
    grading = assessmentSpec(data.lessonId, submission);
   }
 
+  if(activeReview){json(409,{error:'Gia sư đang trả lời một yêu cầu khác. Chờ xong để tránh dùng quota trùng.'});return true;}
+  activeReview=true;
   res.writeHead(200, {
    'Content-Type': 'application/x-ndjson; charset=utf-8',
    'Cache-Control': 'no-store',
@@ -108,7 +117,9 @@ export async function tutorRoute(req, res, pathname){
 
   const requestPayload = {...data, grading, history, provider, model};
   try{
-   if(provider === 'antigravity'){
+   if(provider === 'local'){
+    await localReview(requestPayload,emit,controller.signal);
+   }else if(provider === 'router'){
     await routerReview(requestPayload, emit, controller.signal);
    }else{
     await tutor.review(requestPayload, emit, controller.signal);
@@ -116,6 +127,7 @@ export async function tutorRoute(req, res, pathname){
   }catch(error){
    emit({type: 'error', text: error.message});
   }finally{
+   activeReview=false;
    res.end();
   }
  }catch(error){
