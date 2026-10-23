@@ -4,6 +4,7 @@ import {fileURLToPath} from 'node:url';
 import {randomUUID,createHash} from 'node:crypto';
 import {curriculum} from './curriculum.mjs';
 import {sessionToken} from './session-access.mjs';
+import {referenceSql,procedureProbe,judgeSql} from './sql-judge.mjs';
 const folder=new URL('./.techpath-local/',import.meta.url),configPath=new URL('sql-lab.json',folder);
 const worker=fileURLToPath(new URL('./sql-worker.ps1',import.meta.url));
 const executions=new Map();let initialization,busy=false;
@@ -71,7 +72,7 @@ export async function sqlRoute(req,res,pathname){
  const json=(status,data)=>{res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(data));};
  try{
   if(pathname==='/api/sql/status'&&req.method==='GET'){const config=await ensureSqlLab();json(200,{ok:true,database:config.database,token:sessionToken});return true;}
-  if(pathname!=='/api/sql/run'||req.method!=='POST'){json(404,{error:'Không có thao tác SQL này.'});return true;}
+  if(!['/api/sql/run','/api/sql/submit'].includes(pathname)||req.method!=='POST'){json(404,{error:'Không có thao tác SQL này.'});return true;}
   if(req.headers['x-techpath-token']!==sessionToken){json(403,{error:'Kết nối hết hạn. Bấm Chạy lại để kết nối.'});return true;}
   if(!req.headers['content-type']?.startsWith('application/json')){json(415,{error:'Cần dữ liệu JSON.'});return true;}
   let body='';for await(const chunk of req){body+=chunk;if(Buffer.byteLength(body)>400000){json(413,{error:'Query quá dài.'});return true;}}
@@ -83,7 +84,17 @@ export async function sqlRoute(req,res,pathname){
    const config=await ensureSqlLab(),batches=splitSql(data.code,config.database),controller=new AbortController();res.on('close',()=>controller.abort());
    const result=await invoke({action:'run',config,batches},controller.signal),runId=randomUUID(),at=new Date().toISOString();
    executions.set(runId,{clientId:data.clientId,lessonId:data.lessonId,hash:hash(data.code),result,at});while(executions.size>100)executions.delete(executions.keys().next().value);
-   json(200,{...result,runId,at,output:sqlOutput(result)});
+   let judge=null;
+   if(pathname==='/api/sql/submit'){
+    const mode=data.mode==='transfer'?'transfer':'standard';
+    let reference=null,probe=null;
+    if(result.ok&&!result.truncated&&mode==='standard'){
+     reference=await invoke({action:'run',config,batches:splitSql(referenceSql(data.lessonId),config.database)},controller.signal);
+     if(['sql-proc','sql-params'].includes(data.lessonId))probe=await invoke({action:'run',config,batches:splitSql(procedureProbe(data.lessonId),config.database)},controller.signal);
+    }
+    judge=judgeSql({id:data.lessonId,run:result,reference,probe,code:data.code,mode});
+   }
+   json(200,{...result,runId,at,output:sqlOutput(result),...(judge?{judge}:{})});
   }finally{busy=false;}
  }catch(error){if(!res.headersSent)json(400,{error:error.message});else res.end();}
  return true;
