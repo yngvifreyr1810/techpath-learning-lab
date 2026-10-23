@@ -3,6 +3,7 @@ import {TUTOR_INSTRUCTIONS} from './tutor-prompts.mjs';
 import {sharedContext} from './tutor-context.mjs';
 import {readChatCompletion,completeReview} from './chat-completion.mjs';
 import {catalogModels,defaultRouterModel} from './provider-catalog.mjs';
+import {personalModels,personalContent,personalImages} from './personal-media.mjs';
 import path from 'node:path';
 import {existsSync} from 'node:fs';
 
@@ -46,16 +47,18 @@ export async function routerStatus(){
   const r=await fetch(BASE+'/models',{headers:await getHeaders(),redirect:'error',signal:AbortSignal.timeout(5000)});
   if(!r.ok)return {connected:false,models:[],defaultModel:'',message:r.status===401?'9Router yêu cầu API key. Cấu hình TECHPATH_9ROUTER_API_KEY.':'9Router chưa trả danh sách model.'};
   const body=await r.json(),models=catalogModels(body.data);
-  return {connected:models.length>0,models,defaultModel:defaultRouterModel(models),message:'Đã đọc danh mục 9Router. Chọn workflow hoặc model; khả năng gọi và quota phụ thuộc provider.'};
+  return {connected:models.length>0,models,personalModels:personalModels(body.data),defaultModel:defaultRouterModel(models),message:'Đã đọc danh mục 9Router. Chọn workflow hoặc model; khả năng gọi và quota phụ thuộc provider.'};
  }catch{return {connected:false,models:[],defaultModel:'',message:'Chưa mở 9Router. Mở shortcut 9Router trên Desktop rồi kết nối lại.'};}
 }
 export async function routerReview(request,emit,signal){
  const catalog=await routerStatus();if(!catalog.connected)throw new Error(catalog.message);
  const model=request.model||catalog.defaultModel;
- if(!model||!catalog.models.some(m=>m.id===model))throw new Error('Chọn một workflow/model có trong danh mục 9Router. App không tự chọn model cloud khác.');
+ const personal=request.conversationScope==='personal',choices=personal?[...(catalog.personalModels||[]),...catalog.models.filter(m=>m.id==='techpath-light')]:catalog.models;
+ if(!model||!choices.some(m=>m.id===model))throw new Error('Chọn một workflow/model có trong danh mục 9Router. App không tự chọn model cloud khác.');
+ if(personal&&personalImages(request).length&&!choices.find(m=>m.id===model)?.vision)throw new Error('Model/workflow này chưa được xác nhận nhận ảnh. Chọn Gemini hoặc Copilot GPT-4.1 / GPT-4o.');
  let input=(request.conversationScope==='personal'?personalContext(request):sharedContext(request));
  if(request.grading)input+='\n\nChỉ trả JSON theo schema:\n'+JSON.stringify(request.grading.schema);
- const response=await fetch(BASE+'/chat/completions',{method:'POST',headers:await getHeaders(),redirect:'error',body:JSON.stringify({model,messages:[{role:'system',content:request.conversationScope==='personal'?PERSONAL_INSTRUCTIONS:TUTOR_INSTRUCTIONS},{role:'user',content:input}],stream:true}),signal:AbortSignal.any([AbortSignal.timeout(240000),...(signal?[signal]:[])])});
+ const response=await fetch(BASE+'/chat/completions',{method:'POST',headers:await getHeaders(),redirect:'error',body:JSON.stringify({model,messages:[{role:'system',content:personal?PERSONAL_INSTRUCTIONS:TUTOR_INSTRUCTIONS},{role:'user',content:personal?personalContent(request,input):input}],stream:true}),signal:AbortSignal.any([AbortSignal.timeout(240000),...(signal?[signal]:[])])});
  if(!response.ok){
   if(response.status===401||response.status===403)throw new Error('9Router/provider chưa xác thực. Kiểm tra Providers trong 9Router.');
   if(response.status===429)throw new Error('Workflow/model đang giới hạn lượt hoặc hết quota. Bạn có thể chọn Local AI; app không tự gửi lại.');
