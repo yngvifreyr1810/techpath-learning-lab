@@ -32,7 +32,7 @@ export async function geminiChat(request,emit,signal){
 }
 export async function startGeminiLogin(){
  await prepareGeminiChat();const cli=entry();if(!cli)throw new Error('Chạy Setup-GeminiChat.cmd để cài Gemini CLI trước.');
- const file=path.join(root,'Setup-GeminiChat.ps1');
- const child=spawn('powershell.exe',['-NoProfile','-ExecutionPolicy','Bypass','-File',file,'-LoginOnly'],{cwd:root,windowsHide:false,detached:true,stdio:'ignore'});child.unref();
+ const file=path.join(root,'Open-GeminiLogin.ps1');
+ const child=spawn('powershell.exe',['-NoProfile','-ExecutionPolicy','Bypass','-File',file],{cwd:root,windowsHide:true,detached:true,stdio:'ignore'});child.unref();
  return {message:'Đã mở cửa sổ Gemini. Bạn tự chọn Sign in with Google và đăng nhập. Sau đó đóng cửa sổ và bấm Làm mới AI.'};
 }
