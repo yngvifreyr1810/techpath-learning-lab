@@ -115,7 +115,7 @@ export async function tutorRoute(req, res, pathname){
   res.on('close', () => controller.abort());
   const emit = event => { if(!res.destroyed) res.write(JSON.stringify(event) + '\n'); };
 
-  const requestPayload = {...data, grading, history, provider, model};
+  const requestPayload = {...data, grading, history, provider, model, conversationScope:'learning'};
   try{
    if(provider === 'local'){
     await localReview(requestPayload,emit,controller.signal);

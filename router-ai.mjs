@@ -1,3 +1,4 @@
+import {PERSONAL_INSTRUCTIONS,personalContext} from './personal-prompts.mjs';
 import {TUTOR_INSTRUCTIONS} from './tutor-prompts.mjs';
 import {sharedContext} from './tutor-context.mjs';
 import {readChatCompletion,completeReview} from './chat-completion.mjs';
@@ -52,9 +53,9 @@ export async function routerReview(request,emit,signal){
  const catalog=await routerStatus();if(!catalog.connected)throw new Error(catalog.message);
  const model=request.model||catalog.defaultModel;
  if(!model||!catalog.models.some(m=>m.id===model))throw new Error('Chọn một workflow/model có trong danh mục 9Router. App không tự chọn model cloud khác.');
- let input=sharedContext(request);
+ let input=(request.conversationScope==='personal'?personalContext(request):sharedContext(request));
  if(request.grading)input+='\n\nChỉ trả JSON theo schema:\n'+JSON.stringify(request.grading.schema);
- const response=await fetch(BASE+'/chat/completions',{method:'POST',headers:await getHeaders(),redirect:'error',body:JSON.stringify({model,messages:[{role:'system',content:TUTOR_INSTRUCTIONS},{role:'user',content:input}],stream:true}),signal:AbortSignal.any([AbortSignal.timeout(240000),...(signal?[signal]:[])])});
+ const response=await fetch(BASE+'/chat/completions',{method:'POST',headers:await getHeaders(),redirect:'error',body:JSON.stringify({model,messages:[{role:'system',content:request.conversationScope==='personal'?PERSONAL_INSTRUCTIONS:TUTOR_INSTRUCTIONS},{role:'user',content:input}],stream:true}),signal:AbortSignal.any([AbortSignal.timeout(240000),...(signal?[signal]:[])])});
  if(!response.ok){
   if(response.status===401||response.status===403)throw new Error('9Router/provider chưa xác thực. Kiểm tra Providers trong 9Router.');
   if(response.status===429)throw new Error('Workflow/model đang giới hạn lượt hoặc hết quota. Bạn có thể chọn Local AI; app không tự gửi lại.');

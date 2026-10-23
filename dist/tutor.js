@@ -277,6 +277,7 @@
  updateAiSelector();
 
  window.TechPathTutor = {
+  close(){el.hidden=true;document.body.classList.remove('tutor-open');},
   async review(next){
    if(busy){ open(); status.textContent = 'Gia sư đang trả lời bài trước. Chờ xong rồi gửi bài mới.'; return; }
    open(next);

@@ -1,4 +1,5 @@
 import http from 'node:http';
+import {personalRoute,closePersonal} from './personal-http.mjs';
 import {readFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
@@ -16,6 +17,7 @@ http.createServer(async(req,res)=>{
   if(req.method==='OPTIONS'){res.writeHead(204,{'Access-Control-Allow-Methods':'GET, POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type, X-TechPath-Token','Access-Control-Allow-Private-Network':'true'});res.end();return;}
   const pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname);
   if(pathname==='/api/health'&&req.method==='GET'){res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify({app:'techpath',protocol:1,pid:process.pid}));return;}
+  if(await personalRoute(req,res,pathname))return;
   if(await tutorRoute(req,res,pathname))return;
   if(await sqlRoute(req,res,pathname))return;
   if(req.method!=='GET'&&req.method!=='HEAD'){res.writeHead(405);res.end();return;}
@@ -25,5 +27,5 @@ http.createServer(async(req,res)=>{
   res.writeHead(200,{'Content-Type':types[path.extname(target)]||'application/octet-stream','Cache-Control':'no-cache','X-Content-Type-Options':'nosniff'});res.end(body);
  }catch{res.writeHead(404);res.end('Not found');}
 }).listen(port,'127.0.0.1',()=>console.log(`TechPath: http://localhost:${port}`));
-process.on('SIGINT',()=>{closeTutor();process.exit(0);});
-process.on('SIGTERM',()=>{closeTutor();process.exit(0);});
+process.on('SIGINT',()=>{closeTutor();closePersonal();process.exit(0);});
+process.on('SIGTERM',()=>{closeTutor();closePersonal();process.exit(0);});

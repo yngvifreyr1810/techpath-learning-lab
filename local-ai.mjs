@@ -1,3 +1,4 @@
+import {PERSONAL_INSTRUCTIONS,personalContext} from './personal-prompts.mjs';
 import {TUTOR_INSTRUCTIONS} from './tutor-prompts.mjs';
 import {sharedContext} from './tutor-context.mjs';
 import {readChatCompletion,completeReview} from './chat-completion.mjs';
@@ -17,11 +18,11 @@ export async function localStatus(){
 export async function localReview(request,emit,signal){
  const s=await discover();if(s.loaded.length!==1)throw new Error((await localStatus()).message);
  if(request.model&&request.model!=='local-ai')throw new Error('Local AI dùng model hiện được tải trong LM Studio.');
- const input=sharedContext(request),model=s.loaded[0].id;
+ const input=(request.conversationScope==='personal'?personalContext(request):sharedContext(request)),model=s.loaded[0].id;
  if(!request.grading){
   // LM Studio's native API documents the per-request reasoning switch.
   // Do not change global model settings, reload models, or retry via cloud.
-  const response=await fetch(s.base+'/api/v1/chat',{method:'POST',headers:headers(),redirect:'error',signal:AbortSignal.any([AbortSignal.timeout(180000),...(signal?[signal]:[])]),body:JSON.stringify({model,input,system_prompt:LOCAL_TUTOR_INSTRUCTIONS,stream:false,store:false,integrations:[],temperature:0.3,max_output_tokens:1200,...(s.loaded[0].canDisableReasoning?{reasoning:'off'}:{})})});
+  const response=await fetch(s.base+'/api/v1/chat',{method:'POST',headers:headers(),redirect:'error',signal:AbortSignal.any([AbortSignal.timeout(180000),...(signal?[signal]:[])]),body:JSON.stringify({model,input,system_prompt:request.conversationScope==='personal'?PERSONAL_INSTRUCTIONS:LOCAL_TUTOR_INSTRUCTIONS,stream:false,store:false,integrations:[],temperature:0.3,max_output_tokens:1200,...(s.loaded[0].canDisableReasoning?{reasoning:'off'}:{})})});
   if(!response.ok)throw new Error('Local AI trả HTTP '+response.status+'. Kiểm tra server LM Studio; không tự gửi lại.');
   const body=await response.json();
   if(body.error)throw new Error('Local AI chưa hoàn tất phản hồi. Kiểm tra LM Studio.');
