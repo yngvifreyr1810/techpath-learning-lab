@@ -14,9 +14,11 @@ Mở Cài đặt → Không gian riêng → Mở không gian trò chuyện. Nút
 
 ## AI
 
-Local AI là mặc định. Ngoài ra có Gemini CLI chính thức, techpath-light, Codex và Gemini trong danh mục 9Router khi làm mới AI. Chỉ Local AI trực tiếp bảo đảm không chuyển sang cloud. Các route khác gửi nội dung riêng đến nhà cung cấp tương ứng; cấu hình 9Router quyết định chuỗi fallback.
+Gemini Flash qua Antigravity/9Router là mặc định cho lượt mở mới. Model ag/gemini-3.8-flash-low đã được xác nhận có trong danh mục 9Router trên máy. Có thể chọn Local AI, techpath-light, Codex và Gemini khác từ danh mục khi làm mới AI. Chỉ Local AI trực tiếp bảo đảm không chuyển sang cloud. Các route khác gửi nội dung riêng đến nhà cung cấp tương ứng; cấu hình 9Router quyết định chuỗi fallback.
 
-### Gemini CLI
+### Gemini CLI (thử nghiệm đã ngừng dùng trong giao diện)
+
+Google đã xác thực nhưng báo client không còn hỗ trợ Code Assist cho tài khoản này và đề nghị chuyển sang Antigravity. User chọn Antigravity; lựa chọn/nút đăng nhập CLI được gỡ khỏi giao diện. Adapter/cài đặt nằm trong repo và thư mục ignored để tham khảo, không tự chạy. Các bước dưới đây là hướng dẫn lịch sử, không phải bước cần làm để dùng chat hiện tại.
 
 1. Máy hiện tại đã cài `@google/gemini-cli@0.65.0` trong thư mục `.techpath-local/gemini-runtime` được Git bỏ qua.
 2. Bấm Đăng nhập Gemini trong không gian riêng, tự đăng nhập Google ở cửa sổ vừa mở. Hoặc chạy `Setup-GeminiChat.cmd` (máy mới sẽ cài package trước).
