@@ -27,7 +27,7 @@ export async function personalRoute(req,res,pathname){
   if(typeof body.prompt!=='string'||(!body.prompt.trim()&&!images.length)||body.prompt.length>6000||!['local','router','codex','gemini-cli'].includes(body.provider)||!['listen','reflect','plan'].includes(body.style)){json(400,{error:'Nội dung hoặc lựa chọn AI không hợp lệ.'});return true;}
   if(body.provider==='router'&&(typeof body.model!=='string'||body.model.length>200||!(/^(ag|gemini)\/gemini/i.test(body.model)||body.model.startsWith('gh/')||body.model==='techpath-light'))){json(400,{error:'Chọn Gemini, Copilot hoặc techpath-light trong danh mục hiện tại.'});return true;}
   const request={prompt:body.prompt.trim()||'Bạn xem hình này giúp mình nhé.',images,history,profile:typeof body.profile==='string'?body.profile.slice(0,2000):'',style:body.style,conversationScope:'personal',clientId:'personal',lessonId:'personal-chat',provider:body.provider,model:body.provider==='local'?'local-ai':body.model,grading:null};
-  if(personalImages(request).length&&['codex','gemini-cli'].includes(body.provider)){json(400,{error:'Kết nối CLI này hiện chỉ nhận chữ. Chọn Gemini/Copilot qua 9Router hoặc Local AI có hỗ trợ ảnh.'});return true;}
+  if(personalImages(request).length&&body.provider==='gemini-cli'){json(400,{error:'Kết nối CLI này hiện chỉ nhận chữ. Chọn Gemini/Copilot qua 9Router hoặc Local AI có hỗ trợ ảnh.'});return true;}
   if(busy){json(409,{error:'Đang trả lời một cuộc trò chuyện riêng khác. Hãy chờ hoặc dừng trước.'});return true;}
   busy=true;const controller=new AbortController();res.on('close',()=>controller.abort());
   res.writeHead(200,{'Content-Type':'application/x-ndjson; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});

@@ -55,7 +55,7 @@ export async function routerReview(request,emit,signal){
  const model=request.model||catalog.defaultModel;
  const personal=request.conversationScope==='personal',choices=personal?[...(catalog.personalModels||[]),...catalog.models.filter(m=>m.id==='techpath-light')]:catalog.models;
  if(!model||!choices.some(m=>m.id===model))throw new Error('Chọn một workflow/model có trong danh mục 9Router. App không tự chọn model cloud khác.');
- if(personal&&personalImages(request).length&&!choices.find(m=>m.id===model)?.vision)throw new Error('Model/workflow này chưa được xác nhận nhận ảnh. Chọn Gemini hoặc Copilot GPT-4.1 / GPT-4o.');
+ if(personal&&personalImages(request).length&&!choices.find(m=>m.id===model)?.vision)throw new Error('Model/workflow này chưa được xác nhận nhận ảnh. Chọn kết nối đang hỗ trợ ảnh.');
  let input=(request.conversationScope==='personal'?personalContext(request):sharedContext(request));
  if(request.grading)input+='\n\nChỉ trả JSON theo schema:\n'+JSON.stringify(request.grading.schema);
  const response=await fetch(BASE+'/chat/completions',{method:'POST',headers:await getHeaders(),redirect:'error',body:JSON.stringify({model,messages:[{role:'system',content:personal?PERSONAL_INSTRUCTIONS:TUTOR_INSTRUCTIONS},{role:'user',content:personal?personalContent(request,input):input}],stream:true}),signal:AbortSignal.any([AbortSignal.timeout(240000),...(signal?[signal]:[])])});

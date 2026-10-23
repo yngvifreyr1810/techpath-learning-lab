@@ -1,4 +1,5 @@
 import {PERSONAL_INSTRUCTIONS,personalContext} from './personal-prompts.mjs';
+import {personalContent} from './personal-media.mjs';
 import {spawn} from 'node:child_process';
 import {createInterface} from 'node:readline';
 import {mkdir} from 'node:fs/promises';
@@ -24,7 +25,7 @@ export class LocalCodex {
     const p=this.pending.get(msg.id);this.pending.delete(msg.id);clearTimeout(p.timer);
     if(msg.error)p.reject(new Error(msg.error.message||'Codex từ chối yêu cầu.'));else p.resolve(msg.result);
    }else if(msg.id!==undefined&&msg.method){
-    this.write({jsonrpc:'2.0',id:msg.id,error:{code:-32601,message:'TechPath tutor supports text only; tools are disabled.'}});
+    this.write({jsonrpc:'2.0',id:msg.id,error:{code:-32601,message:'TechPath chat tools are disabled.'}});
    }else for(const fn of this.listeners)fn(msg);
   });
   await this.rpc('initialize',{clientInfo:{name:'techpath_learning_lab',title:'TechPath Tutor',version:'0.3.0'}});
@@ -67,7 +68,7 @@ export class LocalCodex {
    };
    this.listeners.add(listener);
    // Keep read-only execution. The current server rejects the retired readOnly.access field.
-   const result=await this.rpc('turn/start',{threadId,model:MODEL,effort:'low',input:[{type:'text',text:inputPrompt}],approvalPolicy:'never',sandboxPolicy:{type:'readOnly'},...(grading?{outputSchema:grading.schema}:{})});
+   const result=await this.rpc('turn/start',{threadId,model:MODEL,effort:'low',input:request.conversationScope==='personal'?codexPersonalInput(request,inputPrompt):[{type:'text',text:inputPrompt}],approvalPolicy:'never',sandboxPolicy:{type:'readOnly'},...(grading?{outputSchema:grading.schema}:{})});
    turnId=result.turn.id;if(aborted)abort();
    let deadline;const timeout=new Promise((_,reject)=>{deadline=setTimeout(()=>{abort();reject(new Error('Phản hồi quá lâu. Đã yêu cầu dừng; không tự gửi lại.'));},240000);});
    try{
@@ -79,3 +80,5 @@ export class LocalCodex {
  }
  close(){this.proc?.kill();}
 }
+
+export function codexPersonalInput(request,text){const content=personalContent(request,text);return typeof content==='string'?[{type:'text',text:content}]:content.map(part=>part.type==='text'?{type:'text',text:part.text}:{type:'image',url:part.image_url.url});}

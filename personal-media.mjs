@@ -26,7 +26,8 @@ export function personalContent(request,text){
 }
 // A separate live catalog keeps the personal UI independent of tutor curation.
 export function personalModels(raw){
- return [...new Set((Array.isArray(raw)?raw:[]).map(m=>typeof m==='string'?m:m?.id))]
-  .filter(id=>typeof id==='string'&&id.length<=200&&!/\s/.test(id)&&(/^(ag|gemini)\/gemini/i.test(id)||/^gh\/(gpt-(4\.1(?:-mini)?|4o(?:-mini)?|5\.3-codex|5\.4-nano|5\.6-luna|6-luna)|claude-haiku-4\.5)$/.test(id)))
-  .map(id=>({id,label:(id.startsWith('gh/')?'Copilot · ':'Gemini · ')+id.slice(id.indexOf('/')+1),vision:/^(ag|gemini)\/gemini/i.test(id)||/^gh\/gpt-(4\.1|4o|5\.3-codex)/.test(id)}));
+ const records=new Map((Array.isArray(raw)?raw:[]).map(m=>typeof m==='string'?{id:m}:m).filter(m=>m&&typeof m.id==='string').map(m=>[m.id,m]));
+ return [...records.keys()]
+  .filter(id=>typeof id==='string'&&id.length<=200&&!/\s/.test(id)&&(id==='techpath-light'||/^(ag|gemini)\/gemini/i.test(id)||/^gh\/(gpt-(4\.1(?:-mini)?|4o(?:-mini)?|5\.3-codex|5\.4-nano|5\.6-luna|6-luna)|claude-haiku-4\.5|kimi-k3)$/.test(id)))
+  .map(id=>({id,label:(id.startsWith('gh/')?'Copilot · ':'Gemini · ')+id.slice(id.indexOf('/')+1),vision:typeof records.get(id)?.capabilities?.vision==='boolean'?records.get(id).capabilities.vision:id==='gh/kimi-k3'||id==='gh/gpt-6-luna'||/^(ag|gemini)\/gemini/i.test(id)||/^gh\/gpt-(4\.1|4o|5\.3-codex)/.test(id)}));
 }

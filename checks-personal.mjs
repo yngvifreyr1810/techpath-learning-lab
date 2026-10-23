@@ -6,6 +6,7 @@ import {validateImages,personalModels,personalContent,MAX_IMAGE_BYTES} from './p
 import {personalRoute,closePersonal} from './personal-http.mjs';
 import {routerReview} from './router-ai.mjs';
 import {localReview} from './local-ai.mjs';
+import {LocalCodex,codexPersonalInput} from './local-codex.mjs';
 import {sessionToken} from './session-access.mjs';
 
 const image={url:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=',name:'offline.png'};
@@ -14,7 +15,11 @@ for(const bad of [[{url:'https://example.com/private.png'}],[{url:'data:image/sv
 const catalog=personalModels([{id:'gh/gpt-4.1'},{id:'gh/gpt-4o-mini'},{id:'gh/gpt-5.4-nano'},{id:'unknown'},{id:'gh/gpt-4.1'}]);
 assert.equal(catalog.length,3);assert.equal(catalog.find(m=>m.id==='gh/gpt-4o-mini').vision,true);assert.equal(catalog.find(m=>m.id==='gh/gpt-5.4-nano').vision,false);
 assert.deepEqual(personalModels([]),[]);
+assert.equal(personalModels([{id:'gh/gpt-6-luna',capabilities:{vision:true}},{id:'techpath-light',capabilities:{vision:true}},{id:'gh/kimi-k3',capabilities:{vision:false}}]).filter(m=>m.vision).length,2);
+assert.equal(codexPersonalInput({history:[],images:[image]},'look').at(-1).url,image.url);
 assert.equal(personalContent({history:[],images:[image]},'look').filter(p=>p.type==='image_url').length,1);
+
+let nativeTurn;const offlineCodex=new LocalCodex('/unused');offlineCodex.status=async()=>({connected:true});offlineCodex.rpc=async(method,params)=>{if(method==='thread/start')return {thread:{id:'offline'}};if(method==='turn/start'){nativeTurn=params;queueMicrotask(()=>{for(const listener of offlineCodex.listeners){listener({method:'item/completed',params:{threadId:'offline',item:{id:'a',type:'agentMessage',text:'Offline'}}});listener({method:'turn/completed',params:{threadId:'offline',turn:{status:'completed'}}});}});return {turn:{id:'offline-turn'}};}return {};};await offlineCodex.review({conversationScope:'personal',history:[],images:[image],prompt:'look',style:'listen'},()=>{});assert.equal(nativeTurn.input.at(-1).type,'image');assert.equal(nativeTurn.sandboxPolicy.type,'readOnly');
 
 const realFetch=globalThis.fetch,oldKey=process.env.TECHPATH_9ROUTER_API_KEY;
 process.env.TECHPATH_9ROUTER_API_KEY='offline-test';
@@ -46,7 +51,7 @@ try{
  const endpoint='http://127.0.0.1:'+server.address().port+'/api/personal/chat';
  const post=body=>realFetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','X-TechPath-Token':sessionToken},body:JSON.stringify({provider:'router',style:'listen',model:'gh/gpt-4.1',prompt:'',images:[image],...body})});
  try{
-  let response=await post({provider:'codex'});assert.equal(response.status,400);assert.match((await response.json()).error,/CLI/);
+  let response=await post({provider:'gemini-cli'});assert.equal(response.status,400);assert.match((await response.json()).error,/CLI/);
   response=await post({images:[{url:'https://example.com/image'}]});assert.equal(response.status,400);await response.text();
   response=await post({prompt:'x'.repeat(3000001)});assert.equal(response.status,413);await response.text();
   response=await post({history:Array(6).fill({role:'user',text:'Ảnh cũ',images:[image]})});assert.equal(response.status,200);assert.match(await response.text(),/"type":"done"/);

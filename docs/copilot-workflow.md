@@ -29,7 +29,13 @@ Các combo fallback đang có được giữ nguyên. Khi muốn dùng riêng qu
 
 Qua 9Router → OpenCode, Copilot cung cấp suy luận; công cụ đọc/sửa/chạy lệnh thuộc OpenCode. Các khả năng native như tích hợp PR/issue, autocomplete, Auto model selection không tự xuất hiện trong proxy. Chat riêng TechPath chỉ là chat, không được cấp công cụ sửa dự án.
 
-Chat riêng chỉ hiển thị 5 lựa chọn: Local AI, Gemini Flash · Antigravity, Tiết kiệm, Codex và Đọc ảnh · Copilot. Lựa chọn cuối dùng trực tiếp gh/gpt-4.1, nhận cả chữ lẫn ảnh; các model chi tiết khác không hiện trong menu. Danh mục 9Router vẫn được đọc để kiểm tra model còn được quảng bá trước khi gửi. Route dùng model trực tiếp; app không tự thử model khác khi có lỗi. Gemini/Copilot GPT-4.1, GPT-4o và GPT-5.3 Codex có lựa chọn ảnh; Local AI cần capability vision từ LM Studio. Khả năng truyền ảnh được kiểm tra bằng mock, chưa chạy inference thật qua tài khoản.
+Chat riêng có 7 lựa chọn: Local AI, Gemini Flash · Antigravity, Tiết kiệm, Codex, Copilot · GPT-5.3 Codex, Copilot · Kimi K3 và Copilot · GPT-6 Luna. Không tách model chữ/ảnh: ảnh là input bổ sung của cùng model và cùng hạn mức.
+
+GPT-5.3 Codex và Kimi K3 là hai model nhóm Powerful đang được danh mục Copilot của 9Router quảng bá; GPT-6 Luna được thêm theo yêu cầu. Đây là lựa chọn theo thông tin danh mục, không phải benchmark hay xác nhận entitlement. [Phân loại](https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing), [Kimi K3](https://github.blog/changelog/2026-08-06-kimi-k3-is-now-available-in-github-copilot/).
+
+Khả năng nhận ảnh của model/workflow qua 9Router lấy trực tiếp từ capabilities.vision của /v1/models. Hiện 9Router báo vision=true cho ba Copilot, Gemini Flash và techpath-light. Local AI kiểm tra capabilities.vision của model đang tải trong LM Studio. Codex GPT-6.1 Sol nhận ảnh bằng input type=image của app-server, giữ sandbox read-only và tắt công cụ. [Codex App Server](https://learn.chatgpt.com/docs/app-server), [GPT-6 Luna image input](https://developers.openai.com/api/docs/models/gpt-6-luna).
+
+Bấm Làm mới AI khi vừa thay model/provider. App kiểm tra model còn trong danh mục trước khi gửi, không tự gửi lại hay đổi provider khi lỗi. Luồng ảnh router/local/Codex đã kiểm tra bằng phản hồi giả lập; chưa chạy inference thật qua tài khoản.
 
 ## Quota cần hiểu đúng
 
