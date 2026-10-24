@@ -141,8 +141,7 @@ Chỉ payment Succeeded là thanh toán thành công.</pre></details>${stale?'<p
     const prompt=[
      'Nhận xét sơ bộ bài SQL vừa Submit bằng tiếng Việt, khoảng 3–5 dòng ngắn (tối đa 120 từ). Đi thẳng vào query. Không chào hỏi, khen ngợi, in lại cả query hay liệt kê rubric. Không yêu cầu tự chứng minh thêm để thay đổi kết quả SQL.',
      'Nếu Accepted: nói ngắn query đáp ứng yêu cầu ra sao; chỉ góp ý tối đa một điểm đáng sửa nếu thực sự cần. Không bịa vấn đề hiệu năng khi chưa có execution plan. Nếu chưa đạt: chỉ ra một điểm liên quan và một gợi ý nhỏ, không đưa toàn bộ lời giải. Nếu có câu hỏi cụ thể, trả lời đúng câu hỏi bằng các mục ngắn.',
-     `Bài: ${l.title}\nYêu cầu: ${snapshot.mode==='transfer'?l.transfer:l.task}`,
-     'SQL Server / SupportLab: Customers(customer_id,customer_name,email); Orders(order_id,customer_id,order_date,order_status,order_total); Payments(payment_id,order_id,payment_date,payment_status,payment_amount). Một order có nhiều payment; chỉ Succeeded thành công.',
+     lessonBrief(l,snapshot),
      `Query đã nộp:\n${snapshot.code}`,
      `Kết quả chấm SQL: ${judging.verdict==='pass'?'Accepted':judging.verdict}\n${judging.summary}`,
      ...judging.cases.filter(c=>!c.passed).map(c=>`${c.name}: ${c.message}`),
@@ -161,11 +160,22 @@ Chỉ payment Succeeded là thanh toán thành công.</pre></details>${stale?'<p
  function moveOn(id,reason){const next=nextLesson(id);progressNotice=reason+(next?' Đang mở: '+next.title+'.':' Xem thư viện để quay lại bài đã bỏ qua hoặc ôn tập.');save();location.hash=next?'lesson/'+next.id:'lessons';if(next)state.selected=next.id;save();render();toast(reason);}
  async function gradeAttempt(){if(sqlBusy||gradeBusy||tutorBusy)return;const l=currentLesson();syncDraft();let d=draft(l.id);if(!d.code.trim()&&!d.notes.trim()){toast('Nhập bài làm hoặc phương án để AI đánh giá.');return;}gradeBusy=true;updateWorkControls();try{if(l.module==='sql'){const run=sqlRuns.get(l.id);if(!run||run.code!==d.code)await runInApp(l);}syncDraft();d=draft(l.id);if(l.module==='sql'&&sqlRuns.get(l.id)?.code!==d.code)throw new Error('Code đã thay đổi lúc query đang chạy. Hãy bấm review lại bản hiện tại.');const snapshot=structuredClone(d),fingerprint=x=>JSON.stringify([x.code,x.output,x.notes,x.question,x.mode]),frozen=fingerprint(snapshot);const result=await window.TechPathTutor.grade({lessonId:l.id,title:l.title,prompt:packet(l.id),question:d.question,submission:{mode:d.mode,code:d.code,output:d.output,notes:d.notes,question:d.question,runId:sqlRuns.get(l.id)?.result.runId}});if(!result?.assessment)return;if(result.assessment.requiresRerun)sqlRuns.delete(l.id);syncDraft();let g=cleanGrading(result.assessment);if(!g)throw new Error('Chưa có đánh giá hợp lệ.');const changed=fingerprint(draft(l.id))!==frozen;if(changed)g={...g,verdict:'needs_evidence',summary:'Bài làm đã thay đổi trong lúc AI đánh giá. Kết quả này thuộc bản nộp trước; hãy review lại bản hiện tại.'};state.attempts.push({id:uid(),lessonId:l.id,at:new Date().toISOString(),...snapshot,assessment:g.verdict==='pass'?'ai_pass':g.verdict==='retry'?'ai_retry':'ai_needs_evidence',grading:g});save();if(renderedLessonId===l.id&&!changed&&g.verdict==='pass')moveOn(l.id,'AI xác nhận đạt: '+l.title+'.');else{progressNotice=g.summary;if(renderedLessonId===l.id)render();toast(g.verdict==='pass'?'Đã lưu kết quả đạt của bài trước.':g.verdict==='retry'?'Chưa đạt — xem gợi ý và sửa tiếp.':'Cần bổ sung bằng chứng trước khi xác nhận.');}}catch(error){toast(error.message);}finally{gradeBusy=false;updateWorkControls();}}
  function storeAttempt(assessment='retry'){syncDraft();const l=currentLesson(),d=draft(l.id);state.attempts.push({id:uid(),lessonId:l.id,at:new Date().toISOString(),...structuredClone(d),assessment});save();}
+ function lessonBrief(l,d){
+  const p=window.TECHPATH_CHALLENGES?.problems[l.id],bank=window.TECHPATH_CHALLENGES?.tables,standard=d.mode!=='transfer';
+  const brief=[`BÀI HIỆN TẠI: ${l.title}\nNhóm: ${moduleOf(l).name}\nMức học: ${l.foundation?'Ôn nền '+l.foundationIndex+'/20 · '+l.stage:l.summary}\nYêu cầu đang làm: ${standard?l.task:l.transfer}`,
+   'Bám đúng yêu cầu trên. Không tự thêm yêu cầu nghiệp vụ, bảng, công cụ hoặc kỹ thuật khác chỉ vì có trong lịch sử. Nhận xét trước đây của gia sư có thể sai; hãy đối chiếu lại với đề và bằng chứng hiện tại.'];
+  if(l.module==='sql'&&p){
+   brief.push('Môi trường: MS SQL Server / T-SQL.',`Bối cảnh: ${p.context}`,
+    (standard?'Các bảng liên quan tới bài này: ':'Các bảng của bài gốc (bài chuyển giao có thể cần dữ kiện thêm): ')+p.tables.join(', '));
+   for(const name of p.tables){const t=bank?.[name];if(t)brief.push(`dbo.${name}: ${t.columns.map(c=>c[0]+' '+c[1]).join(', ')}\nDữ liệu mẫu gốc (không khẳng định lab hiện tại chưa bị đổi): ${JSON.stringify(t.rows)}`);}
+   if(standard)brief.push(`Quy tắc: ${p.rules.join(' ')}`,`Output cần trả: ${p.output}`,`Output mẫu trên dữ liệu gốc: ${JSON.stringify(p.samples)}`);
+   brief.push('Paid trong Orders là order_status; Succeeded trong Payments là payment_status. Không coi hai trạng thái này là điều kiện thay thế nhau. Chỉ dùng Payments khi đề bài cần dữ liệu thanh toán. Kiểm tra riêng việc chọn dòng (WHERE), tính từng dòng, gom nhóm, tên/thứ tự cột và trùng dòng trước khi đề xuất đổi cấu trúc query.');
+  }
+  return brief.filter(Boolean).join('\n\n');
+ }
  function packet(id){
   syncDraft();const l=id?lesson(id):currentLesson(),d=draft(l.id);
-  return [`Bài: ${l.title}\nYêu cầu: ${d.mode==='transfer'?l.transfer:l.task}`,
-   l.module==='sql'?'SQL Server / SupportLab: Customers(customer_id PK,customer_name,email NULL); Orders(order_id PK,customer_id,order_date,order_status,order_total); Payments(payment_id PK,order_id,payment_date NULL,payment_status,payment_amount). Một order có nhiều payment; chỉ Succeeded thành công.':'Môi trường: Windows / công cụ của bài.',
-   `Bài làm:\n${d.code||'(chưa có)'}`,d.output&&`Kết quả / lỗi:\n${d.output}`,d.notes&&`Ghi chú:\n${d.notes}`,`Câu hỏi: ${d.question||'Review bài làm.'}`].filter(Boolean).join('\n\n');
+  return [lessonBrief(l,d),`Bài làm:\n${d.code||'(chưa có)'}`,d.output&&`Kết quả / lỗi:\n${d.output}`,d.notes&&`Ghi chú:\n${d.notes}`,`Câu hỏi: ${d.question||'Review bài làm.'}`].filter(Boolean).join('\n\n');
  }
  window.TechPathTutorContext=()=>{const l=currentLesson();return {lessonId:l.id,title:l.title,prompt:packet(),question:draft(l.id).question};};
  function backup(){syncDraft();state.lastBackup=new Date().toISOString();save();download(`techpath-backup-${today()}.json`,JSON.stringify({...state,tutor:window.TechPathTutor?.export()},null,2),'application/json');toast('Đã xuất tiến độ. Giữ file để nhập trên máy khác.');}
