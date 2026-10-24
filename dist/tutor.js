@@ -6,7 +6,7 @@
  el.className = 'tutor-panel';
  el.hidden = true;
  el.setAttribute('aria-label', 'Gia sư TechPath');
- el.innerHTML = `<header class="tutor-heading"><div><span class="eyebrow">GIA SƯ TECHPATH</span><h2>Gỡ một nút thắt.</h2></div><button class="button ghost small" data-tutor-close aria-label="Đóng khung gia sư">✕</button></header><div class="tutor-ai-bar"><label for="tutor-provider">Gia sư:</label><select id="tutor-provider"><option value="router">9Router · Workflow / model</option><option value="local">Local AI · chỉ máy này</option><option value="codex">Codex · ChatGPT</option></select><select id="tutor-model" aria-label="Chọn workflow hoặc model"></select></div><p class="tutor-routing-note"></p><button class="button secondary small" data-tutor-refresh>Làm mới AI</button><p class="tutor-connection" role="status">Kết nối bộ gia sư trên máy khi bạn gửi bài.</p><div class="tutor-setup" hidden><p>Mở <strong>Start TechPath</strong> trên Desktop để bật cổng 4173. Có thể bật tự khởi động bằng Enable-TechPathStartup.ps1.</p><p>9Router cần chạy ở cổng 20128. Local AI dùng một model đang tải trong LM Studio, server 1235 hoặc 1234. Nếu trình duyệt chặn kết nối, mở <a href="http://127.0.0.1:4173/#lesson/sql-proc" target="_blank" rel="noopener">bản local</a>.</p><button class="button secondary small" data-tutor-connect>Kết nối lại</button></div><div class="tutor-messages" aria-live="polite" aria-relevant="additions text"></div><div class="tutor-compose"><label for="tutor-followup">Hỏi tiếp về bài này</label><textarea id="tutor-followup" rows="3" placeholder="Mình nghĩ là do… Có phải mình cần kiểm tra…?"></textarea><div class="actions"><button class="button small" data-tutor-send>Gửi câu hỏi</button><button class="button secondary small" data-tutor-stop hidden>Dừng</button></div><p class="save-meta">Học thường ngày: ưu tiên techpath-light hoặc Local AI. Bài khó: chọn workflow cloud. Các lựa chọn dùng chung lịch sử bài học.</p></div>`;
+ el.innerHTML = `<header class="tutor-heading"><div><span class="eyebrow">GIA SƯ TECHPATH</span><h2>Gỡ một nút thắt.</h2></div><button class="button ghost small" data-tutor-close aria-label="Đóng khung gia sư">✕</button></header><div class="tutor-ai-bar"><label for="tutor-provider">Gia sư:</label><select id="tutor-provider"><option value="router">9Router · Workflow / model</option><option value="local">Local AI · chỉ máy này</option><option value="codex">Codex · ChatGPT</option></select><select id="tutor-model" aria-label="Chọn workflow hoặc model"></select></div><div class="tutor-statusbar"><p class="tutor-connection" role="status" data-connected="false">Chưa kết nối</p><button class="button ghost small" data-tutor-refresh title="Làm mới kết nối AI" aria-label="Làm mới kết nối AI">↻</button></div><details class="tutor-setup" hidden><summary>Hướng dẫn kết nối</summary><p>Mở <strong>Start TechPath</strong> trên Desktop để bật cổng 4173. Có thể bật tự khởi động bằng Enable-TechPathStartup.ps1.</p><p>9Router cần chạy ở cổng 20128. Local AI dùng một model đang tải trong LM Studio, server 1235 hoặc 1234. Nếu trình duyệt chặn kết nối, mở <a href="http://127.0.0.1:4173/#lesson/sql-proc" target="_blank" rel="noopener">bản local</a>.</p><button class="button secondary small" data-tutor-connect>Kết nối lại</button></details><div class="tutor-messages" aria-live="polite" aria-relevant="additions text"></div><div class="tutor-compose"><label for="tutor-followup">Hỏi tiếp về bài này</label><textarea id="tutor-followup" rows="2" placeholder="Mình nghĩ là do… Có phải mình cần kiểm tra…?"></textarea><div class="actions"><button class="button small" data-tutor-send>Gửi câu hỏi</button><button class="button secondary small" data-tutor-stop hidden>Dừng</button></div></div>`;
  document.body.append(el);
 
  const q = s => el.querySelector(s), historyArea = q('.tutor-messages'), status = q('.tutor-connection'), setup = q('.tutor-setup');
@@ -47,7 +47,7 @@
 
  function save(){
   try{ localStorage.setItem(KEY, JSON.stringify(data)); }
-  catch{ status.textContent = 'Chưa lưu được lịch sử gia sư. Xuất JSON trước khi đóng trang.'; }
+  catch{ status.title = 'Chưa lưu được lịch sử gia sư. Xuất JSON trước khi đóng trang.'; }
  }
 
  function history(){ return data.histories[context.lessonId] ??= ([]); }
@@ -71,10 +71,13 @@
    }
    modelSelect.value=data.selectedModel;
   }
-  q('.tutor-routing-note').textContent=data.selectedProvider==='local'
-   ? 'Chỉ gọi model đang tải trong LM Studio trên máy này. Không chuyển sang cloud.'
-   :data.selectedProvider==='codex'?'Dùng hạn mức Codex của tài khoản đã đăng nhập.'
-   :(models.find(m=>m.id===data.selectedModel)?.description||'Lấy danh sách từ 9Router. Chọn model rõ ràng; app không tự đổi lựa chọn.');
+  connectionState();
+ }
+
+ function connectionState(){
+  const connected=!!token&&!!serverStatus?.[data.selectedProvider]?.connected&&(data.selectedProvider!=='router'||!!serverStatus?.router?.models?.some(m=>m.id===data.selectedModel));
+  status.dataset.connected=String(connected);
+  status.textContent=connected?'Đang hoạt động':'Chưa kết nối';
  }
 
  function render(){
@@ -135,12 +138,14 @@
   q('[data-tutor-refresh]').disabled = busy;
   q('#tutor-provider').disabled = busy;
   q('#tutor-model').disabled = busy;
+  q('[data-tutor-send]').textContent=busy?'Đang trả lời…':'Gửi câu hỏi';
+  connectionState();
   window.dispatchEvent(new CustomEvent('techpath:tutor-busy', {detail: busy}));
  }
 
- async function connect(){
-  const sequence=++connectSequence, provider=data.selectedProvider;
-  status.textContent='Đang kiểm tra kết nối gia sư…';
+ async function connect(provider=data.selectedProvider){
+  const sequence=++connectSequence;
+  status.title='Đang kiểm tra kết nối gia sư…';
   try{
    const response=await fetch(base+'/api/tutor/status?provider='+encodeURIComponent(provider),{mode:'cors',signal:AbortSignal.timeout(50000)});
    const result=await response.json();
@@ -148,33 +153,33 @@
    if(!response.ok||!result.token)throw new Error(result.error||'Chưa kết nối được bộ gia sư.');
    token=result.token;serverStatus=result;updateAiSelector();
    const selected=result[provider];
-   status.textContent=selected?.message||'AI đã chọn chưa sẵn sàng.';
+   status.title=selected?.message||'AI đã chọn chưa sẵn sàng.';
    setup.hidden=!!selected?.connected;
    return !!selected?.connected;
   }catch(error){
    if(sequence!==connectSequence)return false;
    token=null;serverStatus=null;setup.hidden=false;updateAiSelector();
-   status.textContent=error instanceof TypeError?'Chưa bật bộ kết nối 4173. Mở Start TechPath trên Desktop rồi bấm Làm mới AI.':error.message;
+   status.title=error instanceof TypeError?'Chưa bật bộ kết nối 4173. Mở Start TechPath trên Desktop rồi bấm Làm mới AI.':error.message;
    return false;
   }
  }
 
- async function send(prompt, label, snapshot, gradingSubmission){
-  if(busy){ status.textContent = 'Gia sư đang trả lời. Chờ xong hoặc bấm Dừng.'; return; }
-  if(!prompt.trim() || prompt.length > 60000){ status.textContent = 'Giữ phần bài làm và câu hỏi liên quan dưới 60.000 ký tự.'; return; }
+ async function send(prompt, label, snapshot, gradingSubmission, selection){
+  if(busy){ status.title = 'Gia sư đang trả lời. Chờ xong hoặc bấm Dừng.'; return; }
+  if(!prompt.trim() || prompt.length > 60000){ status.title = 'Giữ phần bài làm và câu hỏi liên quan dưới 60.000 ký tự.'; return; }
   busy = true;
   controls();
   let answer = null, done = false, completionNotice = '', assessment = null;
-  const currentProvider=data.selectedProvider;
-  const currentModel=currentProvider==='router'?data.selectedModel:currentProvider==='local'?'local-ai':'gpt-6.1-sol';
+  const currentProvider=selection?.selectedProvider||data.selectedProvider;
+  const currentModel=currentProvider==='router'?(selection?.selectedModel||data.selectedModel):currentProvider==='local'?'local-ai':'gpt-6.1-sol';
 
   try{
-   if((!token||!serverStatus?.[currentProvider]?.connected) && !(await connect())) return;
+   if((!token||!serverStatus?.[currentProvider]?.connected) && !(await connect(currentProvider))) return;
    // Capture prior turns before adding this request's display label.
    const recentHistory = history().filter(m => ['user', 'assistant'].includes(m.role) && m.text.trim()).slice(-6).map(m => ({role: m.role, text: m.text}));
    add('user', label);
    const modelLabel=currentProvider==='router'?currentModel:currentProvider==='local'?'Local AI':'Codex';
-   status.textContent = gradingSubmission
+   status.title = gradingSubmission
     ? `AI (${modelLabel}) đang review bài và giải đáp phần bạn hỏi…`
     : `Gia sư (${modelLabel}) đang đọc bài làm…`;
    controller = new AbortController();
@@ -186,6 +191,7 @@
     body: JSON.stringify({
      clientId: data.clientId,
      lessonId: context.lessonId,
+     mode: context.mode,
      prompt,
      contextPrompt: snapshot,
      purpose: gradingSubmission ? 'grade' : 'chat',
@@ -239,12 +245,12 @@
    }
    if(buffer.trim()) event(buffer);
    if(!done) throw new Error('Kết nối ngắt trước khi phản hồi hoàn tất. Không tự gửi lại.');
-   status.textContent = completionNotice || (assessment?.answers?.length ? 'Đã review và giải đáp phần bạn hỏi.' : 'Đã review. Bạn có thể hỏi tiếp bên dưới.');
+   status.title = completionNotice || (assessment?.answers?.length ? 'Đã review và giải đáp phần bạn hỏi.' : 'Đã review. Bạn có thể hỏi tiếp bên dưới.');
    return {assessment};
   }catch(error){
    if(answer && !answer.text) history().pop();
    add('error', error.name === 'AbortError' ? 'Đã yêu cầu dừng. Phản hồi một phần (nếu có) được giữ lại.' : error.message);
-   status.textContent = 'Chưa hoàn tất — không tự gửi lại để tránh dùng thêm hạn mức.';
+   status.title = 'Chưa hoàn tất — không tự gửi lại để tránh dùng thêm hạn mức.';
   }finally{
    controller = null;
    busy = false;
@@ -270,6 +276,7 @@
    const fresh = window.TechPathTutorContext?.();
    const snapshot = fresh?.lessonId === context.lessonId ? fresh : context;
    input.value = '';
+   context = snapshot;
    await send(question, question, snapshot.prompt);
   }
  });
@@ -279,15 +286,16 @@
  window.TechPathTutor = {
   close(){el.hidden=true;document.body.classList.remove('tutor-open');},
   async review(next){
-   if(busy){ open(); status.textContent = 'Gia sư đang trả lời bài trước. Chờ xong rồi gửi bài mới.'; return; }
+   if(busy){ open(); status.title = 'Gia sư đang trả lời bài trước. Chờ xong rồi gửi bài mới.'; return; }
    open(next);
-   await send(next.prompt, 'Nhờ review bài làm hiện tại · ' + next.title + '\n' + (next.question || 'Chỉ một gợi ý nhỏ ở điểm cần kiểm tra tiếp.'), next.prompt);
+   await send(next.prompt, (next.submitReview?'Nhận xét bài vừa Submit · ':'Nhờ review bài làm hiện tại · ') + next.title + (next.submitReview?'':'\n' + (next.question || 'Chỉ một gợi ý nhỏ ở điểm cần kiểm tra tiếp.')), next.prompt, undefined, next.selection);
   },
   async grade(next){
-   if(busy){ open(); status.textContent = 'Chờ gia sư trả lời xong trước khi đánh giá.'; return null; }
+   if(busy){ open(); status.title = 'Chờ gia sư trả lời xong trước khi đánh giá.'; return null; }
    open(next);
    return await send(next.prompt, 'Review & đánh giá · ' + next.title, next.prompt, next.submission);
   },
+  selection(){ return {selectedProvider:data.selectedProvider,selectedModel:data.selectedModel}; },
   identity(){ return data.clientId; },
   open(next){ open(next); },
   export(){ return structuredClone(data); },

@@ -2,8 +2,8 @@
   "name": "techpath-learning-lab",
   "version": "0.4.0",
   "private": true,
-  "description": "Personal technology learning workspace with SSMS practice and progressive hints",
+  "description": "Personal technology learning workspace with built-in SQL lab and AI review",
   "type": "module",
-  "scripts": {"start":"node server.mjs","check":"node checks.mjs","build":"node build.mjs","check:mcp":"node checks-mcp.mjs"},
+  "scripts": {"start":"node server.mjs","check":"node checks.mjs","check:tutor":"node checks-tutor.mjs","check:mcp":"node checks-mcp.mjs","check:all":"npm run check && npm run check:tutor && npm run check:mcp","build":"node build.mjs"},
   "engines":{"node":">=20"}
 }

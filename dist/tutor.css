@@ -5,3 +5,24 @@
 @media(max-width:600px){.tutor-panel{padding:18px;width:100vw}.tutor-heading h2{font-size:20px}}
 .review-answers{margin:16px 0;padding-top:14px;border-top:1px solid #3d4f47}.review-answers h3{font-size:16px;margin:0 0 12px}.review-answers h4{font-size:14px;margin:14px 0 5px;color:#d9c881}.review-answers p{margin:0 0 12px}
 .tutor-routing-note{font-size:.82rem;line-height:1.55;color:var(--muted,#b7c7b2);margin:.6rem 0}.tutor-ai-bar select{max-width:100%;min-width:0}.tutor-message small.save-meta{display:block;overflow-wrap:anywhere;margin-top:.65rem}
+
+/* Compact tutor chrome leaves the remaining viewport to conversation. */
+.tutor-panel{padding-top:16px;padding-bottom:14px;gap:8px}
+.tutor-panel>*{flex-shrink:0}
+.tutor-heading{align-items:center}.tutor-heading h2{font-size:20px;margin-top:3px}
+.tutor-heading .eyebrow{font-size:10px}.tutor-heading [data-tutor-close]{padding:5px 9px}
+.tutor-ai-bar{display:grid;grid-template-columns:1fr;gap:6px;padding:9px 10px}
+.tutor-ai-bar label{margin:0}.tutor-ai-bar select{width:100%;height:32px}
+.tutor-statusbar{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:28px}
+.tutor-statusbar .tutor-connection{display:flex;align-items:center;gap:7px;font-size:12px;line-height:1.3;margin:0;color:#bdd0b9}
+.tutor-connection::before{content:'';width:8px;height:8px;border-radius:50%;background:#ed7770;flex:none}
+.tutor-connection[data-connected="true"]::before{background:#5cce88}
+.tutor-statusbar [data-tutor-refresh]{padding:3px 9px;font-size:18px;line-height:1.1;min-height:26px}
+.tutor-panel .tutor-messages{flex:1 1 0;min-height:0;scrollbar-gutter:stable}
+.tutor-messages>p.save-meta{margin:0 0 6px;font-size:10px}
+.tutor-message{margin:8px 0;padding:12px;line-height:1.6}
+.tutor-compose{padding-top:8px}.tutor-compose label{margin:0 0 5px;font-size:11px}
+.tutor-compose textarea{min-height:58px;height:64px;max-height:120px;margin:0;font-size:13px;line-height:1.5}
+.tutor-compose .actions{margin-top:7px}.tutor-compose .button{padding:8px 12px}
+.tutor-setup{padding:7px 10px;max-height:25vh}.tutor-setup summary{font-size:12px;cursor:pointer}.tutor-setup p{margin-top:9px}
+@media(max-height:650px){.tutor-panel{gap:5px;padding-top:10px;padding-bottom:10px}.tutor-heading h2{font-size:17px}.tutor-compose textarea{height:50px;min-height:46px}}

@@ -11,7 +11,7 @@ const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=
 http.createServer(async(req,res)=>{
  try{
   const host=req.headers.host;
-  const allowed=new Set([`http://127.0.0.1:${port}`,`http://localhost:${port}`,'https://an-techpath-lab.creamyeft24.chatgpt.site']);
+  const allowed=new Set([`http://127.0.0.1:${port}`,`http://localhost:${port}`,'https://an-techpath-lab.creamyeft24.chatgpt.site','https://antechpath.creamyeft24.chatgpt.site']);
   if(!new Set([`127.0.0.1:${port}`,`localhost:${port}`]).has(host)||(req.headers.origin&&!allowed.has(req.headers.origin))){res.writeHead(403);res.end('Forbidden');return;}
   if(req.headers.origin){res.setHeader('Access-Control-Allow-Origin',req.headers.origin);res.setHeader('Vary','Origin');}
   if(req.method==='OPTIONS'){res.writeHead(204,{'Access-Control-Allow-Methods':'GET, POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type, X-TechPath-Token','Access-Control-Allow-Private-Network':'true'});res.end();return;}
