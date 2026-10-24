@@ -138,8 +138,8 @@
   window.dispatchEvent(new CustomEvent('techpath:tutor-busy', {detail: busy}));
  }
 
- async function connect(){
-  const sequence=++connectSequence, provider=data.selectedProvider;
+ async function connect(provider=data.selectedProvider){
+  const sequence=++connectSequence;
   status.textContent='Đang kiểm tra kết nối gia sư…';
   try{
    const response=await fetch(base+'/api/tutor/status?provider='+encodeURIComponent(provider),{mode:'cors',signal:AbortSignal.timeout(50000)});
@@ -159,17 +159,17 @@
   }
  }
 
- async function send(prompt, label, snapshot, gradingSubmission){
+ async function send(prompt, label, snapshot, gradingSubmission, selection){
   if(busy){ status.textContent = 'Gia sư đang trả lời. Chờ xong hoặc bấm Dừng.'; return; }
   if(!prompt.trim() || prompt.length > 60000){ status.textContent = 'Giữ phần bài làm và câu hỏi liên quan dưới 60.000 ký tự.'; return; }
   busy = true;
   controls();
   let answer = null, done = false, completionNotice = '', assessment = null;
-  const currentProvider=data.selectedProvider;
-  const currentModel=currentProvider==='router'?data.selectedModel:currentProvider==='local'?'local-ai':'gpt-6.1-sol';
+  const currentProvider=selection?.selectedProvider||data.selectedProvider;
+  const currentModel=currentProvider==='router'?(selection?.selectedModel||data.selectedModel):currentProvider==='local'?'local-ai':'gpt-6.1-sol';
 
   try{
-   if((!token||!serverStatus?.[currentProvider]?.connected) && !(await connect())) return;
+   if((!token||!serverStatus?.[currentProvider]?.connected) && !(await connect(currentProvider))) return;
    // Capture prior turns before adding this request's display label.
    const recentHistory = history().filter(m => ['user', 'assistant'].includes(m.role) && m.text.trim()).slice(-6).map(m => ({role: m.role, text: m.text}));
    add('user', label);
@@ -281,13 +281,14 @@
   async review(next){
    if(busy){ open(); status.textContent = 'Gia sư đang trả lời bài trước. Chờ xong rồi gửi bài mới.'; return; }
    open(next);
-   await send(next.prompt, 'Nhờ review bài làm hiện tại · ' + next.title + '\n' + (next.question || 'Chỉ một gợi ý nhỏ ở điểm cần kiểm tra tiếp.'), next.prompt);
+   await send(next.prompt, (next.submitReview?'Nhận xét bài vừa Submit · ':'Nhờ review bài làm hiện tại · ') + next.title + (next.submitReview?'':'\n' + (next.question || 'Chỉ một gợi ý nhỏ ở điểm cần kiểm tra tiếp.')), next.prompt, undefined, next.selection);
   },
   async grade(next){
    if(busy){ open(); status.textContent = 'Chờ gia sư trả lời xong trước khi đánh giá.'; return null; }
    open(next);
    return await send(next.prompt, 'Review & đánh giá · ' + next.title, next.prompt, next.submission);
   },
+  selection(){ return {selectedProvider:data.selectedProvider,selectedModel:data.selectedModel}; },
   identity(){ return data.clientId; },
   open(next){ open(next); },
   export(){ return structuredClone(data); },

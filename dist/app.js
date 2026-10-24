@@ -127,7 +127,7 @@ Chỉ payment Succeeded là thanh toán thành công.</pre></details>${stale?'<p
  }
  async function submitSql(){
   if(sqlBusy||gradeBusy||tutorBusy)return;
-  syncDraft();const l=currentLesson(),snapshot=structuredClone(draft(l.id));if(!snapshot.code.trim()){toast('Viết query trước khi nộp.');return;}
+  syncDraft();const l=currentLesson(),snapshot=structuredClone(draft(l.id)),selection=window.TechPathTutor?.selection();if(!snapshot.code.trim()){toast('Viết query trước khi nộp.');return;}
   gradeBusy=true;updateWorkControls();
   try{
    const result=await window.TechPathSql.submit(snapshot.code,l.id,snapshot.mode),judging=cleanJudging(result.judge);
@@ -136,6 +136,22 @@ Chỉ payment Succeeded là thanh toán thành công.</pre></details>${stale?'<p
    if(draft(l.id).code===snapshot.code)draft(l.id).output=result.output;
    state.attempts.push({id:uid(),lessonId:l.id,at:new Date().toISOString(),...snapshot,output:result.output,assessment:judging.verdict==='pass'?'sql_pass':judging.verdict==='retry'?'sql_retry':'sql_needs_review',judging});
    save();if(renderedLessonId===l.id)render();toast(judging.verdict==='pass'?'Accepted — đã lưu bài nộp.':judging.summary);
+   // SQL judging is final; optional AI feedback must never overwrite this result.
+   if(window.TechPathTutor?.review){
+    const prompt=[
+     'Nhận xét sơ bộ bài SQL vừa Submit bằng tiếng Việt, khoảng 3–5 dòng ngắn (tối đa 120 từ). Đi thẳng vào query. Không chào hỏi, khen ngợi, in lại cả query hay liệt kê rubric. Không yêu cầu tự chứng minh thêm để thay đổi kết quả SQL.',
+     'Nếu Accepted: nói ngắn query đáp ứng yêu cầu ra sao; chỉ góp ý tối đa một điểm đáng sửa nếu thực sự cần. Không bịa vấn đề hiệu năng khi chưa có execution plan. Nếu chưa đạt: chỉ ra một điểm liên quan và một gợi ý nhỏ, không đưa toàn bộ lời giải. Nếu có câu hỏi cụ thể, trả lời đúng câu hỏi bằng các mục ngắn.',
+     `Bài: ${l.title}\nYêu cầu: ${snapshot.mode==='transfer'?l.transfer:l.task}`,
+     'SQL Server / SupportLab: Customers(customer_id,customer_name,email); Orders(order_id,customer_id,order_date,order_status,order_total); Payments(payment_id,order_id,payment_date,payment_status,payment_amount). Một order có nhiều payment; chỉ Succeeded thành công.',
+     `Query đã nộp:\n${snapshot.code}`,
+     `Kết quả chấm SQL: ${judging.verdict==='pass'?'Accepted':judging.verdict}\n${judging.summary}`,
+     ...judging.cases.filter(c=>!c.passed).map(c=>`${c.name}: ${c.message}`),
+     snapshot.notes&&`Ghi chú người học: ${snapshot.notes}`,
+     snapshot.question&&`Câu hỏi cần giải thích: ${snapshot.question}`
+    ].filter(Boolean).join('\n\n');
+    try{await window.TechPathTutor.review({lessonId:l.id,title:l.title,prompt,submitReview:true,selection});}
+    catch{toast('Đã lưu kết quả SQL. Chưa nhận được nhận xét AI; bạn có thể hỏi lại gia sư.');}
+   }
   }catch(error){sqlRuns.set(l.id,{code:snapshot.code,result:{ok:false,error:{message:error.message},results:[]}});if(renderedLessonId===l.id)render();toast(error.message);}
   finally{gradeBusy=false;updateWorkControls();}
  }
