@@ -186,6 +186,7 @@
     body: JSON.stringify({
      clientId: data.clientId,
      lessonId: context.lessonId,
+     mode: context.mode,
      prompt,
      contextPrompt: snapshot,
      purpose: gradingSubmission ? 'grade' : 'chat',
@@ -270,6 +271,7 @@
    const fresh = window.TechPathTutorContext?.();
    const snapshot = fresh?.lessonId === context.lessonId ? fresh : context;
    input.value = '';
+   context = snapshot;
    await send(question, question, snapshot.prompt);
   }
  });

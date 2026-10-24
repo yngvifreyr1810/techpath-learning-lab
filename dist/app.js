@@ -148,7 +148,7 @@ Chỉ payment Succeeded là thanh toán thành công.</pre></details>${stale?'<p
      snapshot.notes&&`Ghi chú người học: ${snapshot.notes}`,
      snapshot.question&&`Câu hỏi cần giải thích: ${snapshot.question}`
     ].filter(Boolean).join('\n\n');
-    try{await window.TechPathTutor.review({lessonId:l.id,title:l.title,prompt,submitReview:true,selection});}
+    try{await window.TechPathTutor.review({lessonId:l.id,title:l.title,prompt,submitReview:true,mode:snapshot.mode,selection});}
     catch{toast('Đã lưu kết quả SQL. Chưa nhận được nhận xét AI; bạn có thể hỏi lại gia sư.');}
    }
   }catch(error){sqlRuns.set(l.id,{code:snapshot.code,result:{ok:false,error:{message:error.message},results:[]}});if(renderedLessonId===l.id)render();toast(error.message);}
@@ -177,7 +177,7 @@ Chỉ payment Succeeded là thanh toán thành công.</pre></details>${stale?'<p
   syncDraft();const l=id?lesson(id):currentLesson(),d=draft(l.id);
   return [lessonBrief(l,d),`Bài làm:\n${d.code||'(chưa có)'}`,d.output&&`Kết quả / lỗi:\n${d.output}`,d.notes&&`Ghi chú:\n${d.notes}`,`Câu hỏi: ${d.question||'Review bài làm.'}`].filter(Boolean).join('\n\n');
  }
- window.TechPathTutorContext=()=>{const l=currentLesson();return {lessonId:l.id,title:l.title,prompt:packet(),question:draft(l.id).question};};
+ window.TechPathTutorContext=()=>{const l=currentLesson();return {lessonId:l.id,title:l.title,prompt:packet(),mode:draft(l.id).mode,question:draft(l.id).question};};
  function backup(){syncDraft();state.lastBackup=new Date().toISOString();save();download(`techpath-backup-${today()}.json`,JSON.stringify({...state,tutor:window.TechPathTutor?.export()},null,2),'application/json');toast('Đã xuất tiến độ. Giữ file để nhập trên máy khác.');}
  function exportMd(){syncDraft();const md=['# TechPath — Learning journal',`Exported: ${new Date().toISOString()}`,'',...state.attempts.map(a=>`## ${lesson(a.lessonId).title}\n\n${a.at} · ${a.assessment} · ${a.mode}\n\n### Bài làm\n\n\`\`\`sql\n${a.code.replace(/```/g,'` ` `')}\n\`\`\`\n\n### Kết quả\n\n${a.output}\n\n### Ghi chú\n\n${a.notes}\n\n### SQL judging\n\n${a.judging?[a.judging.summary,a.judging.basis,...a.judging.cases.map(c=>(c.passed?"PASS: ":"FAIL: ")+c.name+" — "+c.message)].join("\n"):"Chưa nộp SQL."}\n\n### AI review\n\n${a.grading?[a.grading.verdict,a.grading.summary,a.grading.hint,a.grading.optimization,...(a.grading.answers||[]).map(a=>a.topic+': '+a.text),...a.grading.criteria.map(c=>c.status+": "+c.text+" — "+c.reason),a.grading.basis].filter(Boolean).join("\n\n"):"Chưa có đánh giá AI."}\n`),'## Ghi chú riêng','',...state.notes.map(n=>`${n.at}\n\n${n.text}\n`),'## Buổi học','',...state.sessions.map(s=>`${s.at} · ${s.minutes} phút\n\n${s.reflection}\n`)];download(`techpath-journal-${today()}.md`,md.join('\n'));}
  document.addEventListener('input',e=>{const el=e.target;if(el.id.startsWith('draft-')){syncDraft();clearTimeout(saveTimer);saveTimer=setTimeout(save,300);}if(el.id==='custom-duration'){const n=Number(el.value);if(Number.isInteger(n)&&n>=15&&n<=240){state.duration=n;save();document.querySelectorAll('[data-duration]').forEach(b=>b.classList.toggle('selected',Number(b.dataset.duration)===n));}}for(const [id,set] of [['lesson-search',v=>lessonSearch=v],['notebook-search',v=>notebookSearch=v],['vocab-search',v=>vocabSearch=v]])if(el.id===id){const pos=el.selectionStart;set(el.value);render();const n=$('#'+id);n.focus();n.setSelectionRange(pos,pos);}});
