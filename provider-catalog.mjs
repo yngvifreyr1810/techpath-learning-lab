@@ -1,21 +1,4 @@
-/**
- * TechPath Model Catalog - Updated after Multi-Agent Testing (2026-10-23)
- * Cleanup Applied: Removed 2 inactive models from catalog
- */
-
-// ========================================
-// CATALOG STRUCTURE
-// ========================================
-
-/**
- * Provider catalog configuration for TechPath project
- * 
- * Active Models After Cleanup (2026-10-23):
- * - Total: 14 original models → 12 active models after cleanup
- * - Removed: ag/gemini-pro-expired (timeout), cx/gemini-expired (auth failed)
- */
-
-// Available model IDs grouped by provider category
+import {readFileSync} from 'node:fs';
 const ids = [
   // Copilot: existing selections and default workflow remain unchanged.
   { id: "gh/gpt-5.3-codex", label: "GPT-5.3 Codex", group: "GitHub Copilot" },
@@ -65,16 +48,21 @@ const ids = [
   return catalogEntry;
 });
 
-// ========================================
-// CATALOG FUNCTIONS
-// ========================================
-
-/**
- * Get all models from the catalog
- * @param {Array} raw - Optional raw model IDs to use instead of default
- * @returns {Array} Array of model objects with id, label, group
- */
+const qoderLabels = {
+ ultimate:'Ultimate',auto:'Tự động',performance:'Performance',efficient:'Efficient',lite:'Lite',
+ qmodel_38max:'Qwen3.8-Max',qmodel_latest:'Qwen3.7-Max',qmodel:'Qwen3.7-Plus',qfmodel:'Qwen3.8-Flash',
+ kmodel_latest:'Kimi-K3',kmodel:'Kimi-K2.7-Code',gmodel:'GLM-5.3',gfmodel:'GLM-5.3-Flash',
+ dmodel:'DeepSeek-V4-Pro',dfmodel:'DeepSeek-V4-Flash',mmodel:'MiniMax-M3',smodel:'Sonus',cmodel:'Cantus'
+};
+function verifiedQoderIds() {
+ try {
+  const report=JSON.parse(readFileSync(new URL('./.techpath-local/qoder-model-health.json',import.meta.url),'utf8'));
+  if(report.version!==1||!Array.isArray(report.results)||!report.results.some(r=>r.ok===true))return null;
+  return new Set(report.results.filter(r=>r.ok===true).map(r=>r.id));
+ }catch{return null;}
+}
 export function catalogModels(raw) {
+  const verified = verifiedQoderIds();
   const known = new Map(ids.map(model => [model.id, model]));
   const groups = {gh:'GitHub Copilot', ag:'antigravity', cx:'codex', oc:'opencode', local:'local', qoder:'Qoder', qd:'Qoder'};
   const result = [], seen = new Set();
@@ -84,10 +72,11 @@ export function catalogModels(raw) {
     const prefix = id.split('/')[0];
     const copilot = prefix === 'gh' || /copilot/i.test(item?.owned_by || item?.provider || '');
     // Student/Free: never offer or silently map a pinned Copilot model.
-    if (copilot && !/\/auto$/i.test(id)) continue;
+    if (copilot) continue;
     const qoder = ['qoder','qd'].includes(prefix) || /qoder/i.test(item?.owned_by || item?.provider || '');
+    if(qoder && verified && !verified.has(id))continue;
     const previous = known.get(id);
-    result.push({id, label:copilot ? 'Copilot · Auto' : String(item?.name || item?.label || previous?.label || id),
+    result.push({id, label:qoder ? (qoderLabels[id.split('/').slice(1).join('/')] || String(item?.name || item?.label || id)) : String(item?.name || item?.label || previous?.label || id),
       group: qoder ? 'Qoder' : copilot ? 'GitHub Copilot' : previous?.group || groups[prefix] || 'workflow'});
     seen.add(id);
   }
@@ -100,30 +89,3 @@ export function defaultRouterModel(models) {
     || models.find(model => model.group === 'opencode' && /free/i.test(model.id))?.id
     || '';
 }
-
-/**
- * Get active (non-removed) models count
- * @returns {number} Count of active models
- */
-function getActiveModelCount() {
-  return ids.length; // Should be 12 after cleanup
-}
-
-// ========================================
-// CLEANUP LOG - 2026-10-23
-// ========================================
-
-/**
- * Log of removed models during cleanup operation:
- * 
- * REMOVED MODELS (2 total):
- * 1. ag/gemini-pro-expired - Timeout > 60s (65s actual), quota exhausted
- * 2. cx/gemini-expired - HTTP 401 Authentication Failed, API expired
- * 
- * ALL REMAINING 12 MODELS VERIFIED ACTIVE:
- * - Free Tier: 2/2 active (100%)
- * - Local Models: 2/2 active (100%)  
- * - Workflows: 3/3 active (100%)
- * - Antigravity: 3/4 active (75% - 1 removed)
- * - Codex: 2/3 active (67% - 1 removed)
- */
