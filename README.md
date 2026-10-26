@@ -1,25 +1,29 @@
 # TechPath — Personal Learning Lab
 
+## Python và API Foundations
+
+Thư viện có **27 bài Python Foundations** và **12 bài API Foundations** (gửi request trực tiếp trong app). Sáu bài Python đầu gồm 3 bài `print()` và 3 bài biến văn bản: lý thuyết, ví dụ và tác dụng thực tế trước, tự viết code tạo output mong đợi, Chạy/Nộp bài và lỗi có giải thích tiếng Việt. Sau khi đạt, chủ động bấm sang bài luyện kế tiếp. Python chạy trên máy bằng `py -3`; luồng này không gọi AI. Python và SQL có gợi ý tên/cú pháp bằng Tab. Sau khi khởi động lại connector, mở `http://127.0.0.1:4173/#lesson/python-basic-print`. Xem [phạm vi và kiểm chứng](docs/python-foundations.md).
+
 ## SQL lab và AI đánh giá (v0.4 — luồng hiện tại)
 
-1. Mở `Start-TechPath.cmd` trên Windows. Cần SQL Server Express tại `localhost\SQLEXPRESS` để chạy SQL, và Codex đăng nhập bằng ChatGPT để dùng AI. Laptop cần cài SQL Server Express riêng; tiến độ chuyển bằng JSON.
+1. Mở `Start-TechPath.cmd` trên Windows. Cần SQL Server Express tại `localhost\SQLEXPRESS` để chạy SQL. AI dùng Codex đã đăng nhập bằng ChatGPT hoặc 9Router/Antigravity (Gemini, Claude, GPT-OSS); chỉ cần một trong hai. Laptop cần cài SQL Server Express riêng; tiến độ chuyển bằng JSON.
 2. Bài học → **Thực hành** → viết query trong app → **Chạy SQL** hoặc **Ctrl+Enter**. Kết quả nhiều bảng, NULL và lỗi kèm dòng xuất hiện ngay bên dưới. Hỗ trợ GO trên dòng riêng, CTE, CREATE OR ALTER PROCEDURE, EXEC và sys.sp_helptext. Chạy SQL không gọi AI hoặc tiêu hao hạn mức model.
-3. Bấm **Review & đánh giá**. Nếu code mới chưa chạy, app chạy trước rồi gửi kết quả và rubric của bài cho AI. Đạt thì lưu nhận xét/tối ưu và tự mở bài tiếp theo. Chưa đạt hoặc thiếu bằng chứng thì giữ bài, cho một gợi ý nhỏ. Hỏi tiếp trong khung gia sư không tự chấm hay chuyển bài.
+3. Bấm **Review & đánh giá**. Nếu code mới chưa chạy, app chạy trước rồi gửi kết quả và rubric của bài cho AI. Đạt thì lưu nhận xét/tối ưu và tự mở bài tiếp theo. Chưa đạt hoặc thiếu bằng chứng thì giữ bài, cho một gợi ý nhỏ. Nếu bạn nhập câu hỏi ở ô **Chỗ mình muốn hỏi review**, kết quả có thêm mục **Giải thích phần bạn hỏi**; mục này được lưu trong nhật ký, bản sao lưu JSON và xuất Markdown. Hỏi tiếp trong khung gia sư không tự chấm hay chuyển bài.
 4. **Bỏ qua bài** lưu bản làm hiện tại và mở bài khác; không tính là đạt. Thư viện có bộ lọc **Đã bỏ qua** để quay lại. Nhật ký lưu kết quả, tiêu chí và nhận xét. Tab tự kiểm tra và các nút tự xác nhận đã được bỏ.
 
 Kết quả là **AI xác nhận đạt bài thực hành**, không phải chứng nhận kỹ năng độc lập. App không tự chạy SQL ở môi trường công ty. Database `TechPathLab_<id>` do app tạo có cùng 6 customers, 8 orders, 5 payments như SupportLab, tách khỏi database SupportLab cũ. `USE SupportLab` trên dòng riêng được ánh xạ vào lab để dùng được code đã học. Mỗi máy có lab riêng; dữ liệu SQL/procedure trên máy không tự đồng bộ theo JSON.
 
-Các phần v0.2/v0.3 bên dưới ghi lại nền tảng kết nối cũ; luồng v0.4 ở trên được ưu tiên khi có khác biệt.
+Phần v0.2 bên dưới ghi lại nền tảng MCP cũ; luồng v0.4 ở trên được ưu tiên khi có khác biệt.
 
-## Gia sư trực tiếp (v0.3)
+## Gia sư trực tiếp (v0.3, cập nhật v0.4)
 
-1. Trên Windows, mở `Start-TechPath.cmd` trong thư mục project. Cần Node.js 20+ và Codex đã đăng nhập bằng ChatGPT. Bộ khởi động tìm Codex CLI hoặc bản đi kèm desktop app.
+1. Trên Windows, mở `Start-TechPath.cmd` trong thư mục project. Cần Node.js 20+ và một trong hai: Codex đã đăng nhập bằng ChatGPT, hoặc 9Router đang chạy ở cổng `20128` với Antigravity. Bộ khởi động tìm Codex CLI hoặc bản đi kèm desktop app.
 2. Mở bài, nhập code/kết quả/suy luận/câu hỏi rồi bấm **Nhờ review**. App đọc các ô đó và trả lời trong khung bên cạnh. Hỏi tiếp ngay trong khung; không cần copy prompt.
 3. Nếu trình duyệt hỏi quyền mạng cục bộ, cho phép TechPath kết nối với bộ gia sư trên máy. Nếu bị chặn, dùng `http://127.0.0.1:4173`, xuất/nhập JSON để chuyển tiến độ từ bản web. Không mở cổng ra Internet.
 
-Dùng `gpt-6.1-sol` / Light (`low`) với hạn mức Codex của tài khoản ChatGPT đã đăng nhập. Không yêu cầu API key và không tự đổi sang model khác. Hết hạn mức hoặc chưa đăng nhập thì hiển thị lỗi, không tự mua thêm. Mỗi máy cần chạy bộ kết nối riêng.
+Khung gia sư cho chọn **Antigravity** (Gemini, Claude, GPT-OSS qua 9Router) hoặc **Codex** (ChatGPT). Antigravity mặc định dùng Gemini 3.8 Flash (Low) khi 9Router sẵn sàng; Codex dùng `gpt-6.1-sol` / Light (`low`). Không tự đổi provider/model khi lỗi và không tự mua thêm hạn mức. Hết hạn mức hoặc chưa đăng nhập thì hiển thị lỗi. Mỗi máy cần chạy bộ kết nối riêng.
 
-Gia sư nhớ trao đổi riêng theo từng bài trên máy hiện tại, kèm hồ sơ học và nguyên tắc gợi ý từng bước. Nó không có toàn bộ lịch sử chat thiết kế app. Lịch sử hiển thị đi theo bản sao lưu JSON; lịch sử Codex nằm trên máy không tự chuyển theo. Chỉ gửi khi người học bấm nút. App không đọc trực tiếp SSMS.
+Gia sư nhớ trao đổi riêng theo từng bài trên máy hiện tại, kèm hồ sơ học và nguyên tắc gợi ý từng bước. Nó không có toàn bộ lịch sử chat thiết kế app. Lịch sử hiển thị đi theo bản sao lưu JSON; lịch sử phiên Codex nằm trên máy không tự chuyển theo. Chỉ gửi khi người học bấm nút. App không đọc trực tiếp SSMS.
 
 Chạy thủ công: `node server.mjs`. Dừng bằng Ctrl+C nếu chạy trong terminal. Bộ khởi động chạy nền để không giữ cửa sổ terminal; có thể kết thúc đúng tiến trình `node server.mjs` trong Task Manager hoặc khởi động lại máy. `.techpath-local/` là dữ liệu riêng đã được bỏ qua trong Git.
 
@@ -31,9 +35,9 @@ Sites tạo plugin riêng khi publish với capability `mcp`. Sau khi cài/kết
 
 Tab web độc lập không có host bridge nên không gửi trực tiếp vào chat. Nó vẫn hỗ trợ copy ngữ cảnh và sao lưu. Browser-local state của tab web và sandbox plugin có thể tách biệt: xuất JSON ở bản web rồi nhập trong plugin nếu muốn chuyển tiến độ. Host widget-state được dùng khi được hỗ trợ; tiếp tục giữ bản JSON để sao lưu. Không có đồng bộ cloud tự động.
 
-Build Worker: `node build.mjs`. Kiểm tra: `node checks.mjs` và `node checks-mcp.mjs`. Server là ESM không dependency; build nhúng các asset UI vào Worker. Đọc `docs/integration.md` để xem ranh giới xác minh.
+Build Worker: `node build.mjs`. Kiểm tra: `npm run check:all` (gồm `checks.mjs`, `checks-tutor.mjs`, `checks-mcp.mjs`). Server là ESM không dependency; build nhúng các asset UI vào Worker. Đọc `docs/integration.md` để xem ranh giới xác minh.
 
-Không gian học kỹ năng công nghệ cho người bắt đầu với Information Systems, SQL và Windows troubleshooting. Giao diện tiếng Việt, thuật ngữ tiếng Anh, dark mode. Không yêu cầu API key hoặc cài thư viện cho app.
+Không gian học kỹ năng công nghệ cho người bắt đầu với Information Systems, SQL và Windows troubleshooting. Giao diện tiếng Việt, thuật ngữ tiếng Anh, dark mode. Không cần API key cho Codex; 9Router có thể cần key nếu gateway được cấu hình yêu cầu.
 
 ## Chạy trên PC hoặc laptop
 
@@ -49,11 +53,11 @@ Mở `http://localhost:4173`. Dừng server bằng Ctrl+C trong terminal. Có th
 
 1. Tổng quan → chọn 30, 60, 90, 120 phút hoặc nhập 15–240 phút.
 2. Tạo buổi học → mở bài. Bài gợi ý đầu là stored procedure, tiếp nối SupportLab trong chat.
-3. Đọc đề, làm trong SSMS. App không kết nối SQL Server hoặc chạy SQL.
-4. Dán code/kết quả, hoặc nhập file `.sql` đã lưu (hỗ trợ UTF-8/UTF-16).
+3. Đọc đề, viết query/phương án trong tab **Thực hành**. Với bài SQL, bấm **Chạy SQL** hoặc **Ctrl+Enter**; app chạy trong lab riêng `TechPathLab_*`, không phải database công ty.
+4. Xem kết quả/lỗi ngay dưới editor, sửa và chạy lại khi cần. Có thể dán code hoặc nhập file `.sql` đã lưu (hỗ trợ UTF-8/UTF-16).
 5. Nếu bí, mở một gợi ý. Các gợi ý là nội dung soạn sẵn, không phải phản hồi AI.
-6. “Nhờ review” đọc bài làm và mở phản hồi Codex trong khung gia sư. Bộ kết nối phải chạy trên máy.
-7. Tự kiểm tra theo checklist, ghi nhận mức độc lập. Lần thử cũ nằm trong Nhật ký.
+6. Nhập câu hỏi vào ô **Chỗ mình muốn hỏi review** nếu muốn giải thích thêm, rồi bấm **Review & đánh giá**. AI đối chiếu code, kết quả chạy và rubric; đạt thì lưu nhận xét và mở bài tiếp theo.
+7. Hỏi tiếp trong khung gia sư. Câu hỏi tiếp không tự chấm điểm hay chuyển bài; kết quả và phần giải thích nằm trong Nhật ký.
 8. Kết thúc buổi và xuất sao lưu trước khi đổi máy.
 
 ## Nội dung
@@ -64,7 +68,7 @@ Dataset SupportLab tải từ Cài đặt hoặc bài SQL: 6 customers, 8 orders
 
 ## AI và chi phí
 
-Gia sư dùng Codex App Server với tài khoản ChatGPT hiện có, chịu hạn mức của gói. Không dùng API key hoặc cơ chế mua thêm tự động. Copilot Chat trong SSMS là lựa chọn riêng, không phải backend của nút review mới.
+Gia sư dùng Codex App Server với tài khoản ChatGPT hiện có, hoặc 9Router/Antigravity (Gemini, Claude, GPT-OSS). Cả hai đều dùng hạn mức của tài khoản/provider đã kết nối; không có cơ chế mua thêm tự động. Codex không cần API key thủ công. Nếu 9Router yêu cầu key, đặt `TECHPATH_9ROUTER_API_KEY` cho bộ kết nối. Copilot Chat trong SSMS là lựa chọn riêng, không phải backend của nút review.
 
 Hướng dẫn chính thức:
 
@@ -84,9 +88,9 @@ SSMS version khác SQL Server version. Mục AI trong SSMS ưu tiên Chat và ma
 - Dữ liệu lưu cục bộ không mã hóa; không dán credential hoặc dữ liệu công ty. Xóa browser data có thể xóa tiến độ. Giữ bản JSON riêng.
 - GitHub giữ source, không tự đồng bộ tiến độ. Không commit JSON cá nhân hoặc workstation output. `.gitignore` có mẫu loại trừ bản backup mặc định.
 
-## Tiến bộ là tự đánh giá
+## Tiến bộ và giới hạn đánh giá
 
-Không có SQL execution, chấm AI hoặc kiểm chứng output tự động. “Tự làm được” cần đủ checklist và không mở hint/solution ở lần thử đó. “Tự làm + chuyển giao” cần hai ngày độc lập, có ít nhất một lần làm bài chuyển giao. Đây là công cụ theo dõi, không phải chứng nhận năng lực.
+App có SQL lab chạy trong database riêng trên máy và AI review khi bạn bấm nút. **AI xác nhận đạt bài thực hành** dựa trên code, kết quả chạy và rubric; đây không phải chứng nhận năng lực độc lập và AI có thể sai. “Tự làm được” vẫn cần đủ checklist và không mở hint/solution ở lần thử đó. “Tự làm + chuyển giao” cần hai ngày độc lập, có ít nhất một lần làm bài chuyển giao. Đây là công cụ theo dõi, không phải chứng nhận năng lực.
 
 Lịch ôn: lần cần trợ giúp/cần luyện lại quay lại sau 1 ngày; các lần độc lập giãn 1, 3, 7, 14 ngày. Bắt đầu lần thử mới giữ bài trước trong Nhật ký rồi làm trống vùng soạn. Trong bài chuyển giao, gợi ý và lời giải tiêu chuẩn chỉ phục vụ khái niệm bài chính, không phải đáp án yêu cầu mới.
 
@@ -95,19 +99,40 @@ Lịch ôn: lần cần trợ giúp/cần luyện lại quay lại sau 1 ngày; 
 ```text
 dist/index.html       App shell
 dist/style.css        Responsive dark interface
+dist/tutor.css        Tutor panel styles
 dist/content.js       Curriculum, hints, reference solutions, fake lab SQL
-dist/app.js           Sessions, draft persistence, review packets, import/export
+dist/app.js           Sessions, drafts, review packets, grading UI, import/export
+dist/tutor.js         Tutor panel, provider/model selection, NDJSON stream
+dist/sql.js           SQL lab UI client
+assessment.mjs        Grading schema, prompt, validation, rendered text
+tutor-context.mjs     Bounded shared history + current snapshot
+tutor-prompts.mjs     Shared tutor/grading instructions
+tutor-http.mjs        Local tutor HTTP routes and grading lookup
+local-codex.mjs       Codex App Server connector
+router-ai.mjs         9Router / Antigravity connector
+sql-lab.mjs           SQL Server Express lab routes and run records
 server.mjs            Dependency-free local preview
-checks.mjs            Persistence / backup / planner regression checks
+checks.mjs            Persistence / backup / render regression checks
+checks-tutor.mjs      Grading, context and explanation checks
+checks-mcp.mjs        MCP / Worker contract checks
 docs/requirements.md  Scope and decisions
+docs/integration.md   Connection, grading and verification boundaries
+docs/HANDOFF.md       Current state and next steps
 ```
 
-Chạy `npm run check` cho kiểm tra hồi quy dữ liệu và logic kế hoạch. Kiểm tra giao diện riêng trong trình duyệt; các check này không chạy SQL Server.
+Chạy `npm run check:all` cho kiểm tra hồi quy dữ liệu, grading và MCP. Kiểm tra giao diện và kết nối AI thật trong trình duyệt; các check này không chạy SQL Server và không gọi model.
 
 ## Đưa lên GitHub
 
 Tạo repository `techpath-learning-lab` (private mặc định) và push source. Nếu tải ZIP từ app handoff, giải nén rồi mở thư mục bằng GitHub Desktop, Add local repository → Create repository nếu cần → Publish repository. Không đưa bản sao tiến độ lên repo công khai.
 
-## Giới hạn v0.1
+## Giới hạn hiện tại (v0.4)
 
-Không đồng bộ tự động giữa thiết bị; không đọc query SSMS chưa lưu; không xác định vị trí con trỏ; không dùng LLM trong app; không chạy SQL hoặc PowerShell. Thực hành và đối chiếu thực tế được làm trong SSMS/Windows. Nội dung kỹ thuật và kỳ vọng dựa trên dataset gốc; cập nhật dữ liệu làm thay đổi kết quả kỳ vọng.
+Không đồng bộ tự động giữa thiết bị; không đọc query SSMS chưa lưu. AI chỉ chạy khi bạn bấm **Nhờ review** hoặc **Review & đánh giá**, và kết quả AI có thể sai. SQL lab là database riêng trên từng máy, không phải môi trường công ty; dữ liệu và procedure không đi theo bản sao lưu JSON. Nội dung kỹ thuật và kỳ vọng dựa trên dataset gốc; cập nhật dữ liệu làm thay đổi kết quả kỳ vọng.
+
+## Python và API Foundations local
+
+- Python: giữ sáu bài đầu, thêm 21 bài cho bảy buổi luyện, mỗi buổi ba bài nhỏ. [Nội dung và kiểm chứng](docs/python-foundations.md).
+- API: 12 bài nhập môn GET, đường dẫn/status, query và POST JSON, dùng Request Builder với API mô phỏng. [Hướng dẫn](docs/api-foundations.md).
+- Chạy bản source mới: mở `Start-Foundations-Preview.cmd`, sau đó truy cập `http://127.0.0.1:4190/#lessons/python` hoặc `#lessons/api`. Nếu chuyển từ preview 4189, xuất JSON ở bản cũ rồi nhập ở bản mới để mang theo tiến độ.
+- Kiểm tra offline: `node checks-python.mjs`, `node checks-api.mjs`, `node checks-python-ui.mjs --offline`, `node build.mjs`, `node checks-mcp.mjs`. UI test cần Playwright đã có trong runtime; không tự cài dependency.

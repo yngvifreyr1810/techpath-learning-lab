@@ -47,7 +47,7 @@ export async function routerStatus(){
   const r=await fetch(BASE+'/models',{headers:await getHeaders(),redirect:'error',signal:AbortSignal.timeout(5000)});
   if(!r.ok)return {connected:false,models:[],defaultModel:'',message:r.status===401?'9Router yêu cầu API key. Cấu hình TECHPATH_9ROUTER_API_KEY.':'9Router chưa trả danh sách model.'};
   const body=await r.json(),models=catalogModels(body.data);
-  return {connected:models.length>0,models,personalModels:personalModels(body.data),defaultModel:defaultRouterModel(models),message:'Đã đọc danh mục 9Router. Chọn workflow hoặc model; khả năng gọi và quota phụ thuộc provider.'};
+  return {connected:models.length>0,models,personalModels:personalModels(body.data).filter(model=>! /^(gh|copilot)\//i.test(model.id)),defaultModel:defaultRouterModel(models),message:'Đã đọc danh mục 9Router. Chọn workflow hoặc model; khả năng gọi và quota phụ thuộc provider.'};
  }catch{return {connected:false,models:[],defaultModel:'',message:'Chưa mở 9Router. Mở shortcut 9Router trên Desktop rồi kết nối lại.'};}
 }
 export async function routerReview(request,emit,signal){
@@ -66,4 +66,19 @@ export async function routerReview(request,emit,signal){
  }
  const result=await readChatCompletion(response,request.grading?undefined:text=>emit({type:'delta',text}));
  completeReview(result,request,emit,'9Router',model);
+}
+
+// Explicit local Qoder diagnostic; never invoked by status or ordinary chat.
+export async function qoderCheckRequest(model) {
+ if(model!==null && !/^(qd|qoder)\/[^\s]+$/.test(model))throw new Error('Invalid Qoder model');
+ const signal=AbortSignal.timeout(model===null?5000:45000);
+ const response=await fetch(BASE+(model===null?'/models':'/chat/completions'),{
+  method:model===null?'GET':'POST',headers:await getHeaders(),redirect:'error',signal,
+  ...(model===null?{}:{body:JSON.stringify({model,messages:[{role:'user',content:'Reply with exactly OK.'}],stream:false,max_tokens:64})})
+ });
+ if(!response.ok)throw new Error('HTTP '+response.status);
+ const body=await response.json();
+ if(model===null)return body.data;
+ if(body.error || !body.choices?.[0]?.message?.content?.trim())throw new Error('Empty or invalid response');
+ return true;
 }

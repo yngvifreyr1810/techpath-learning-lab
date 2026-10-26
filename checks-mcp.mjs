@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
+import {curriculum} from './curriculum.mjs';
 import worker,{dispatch} from './dist/server/index.js';
 const request=(method,params={},id=1)=>({jsonrpc:'2.0',id,method,params});
 const tools=dispatch(request('tools/list')).result.tools;
@@ -10,7 +11,8 @@ assert.equal(open._meta.ui.resourceUri,'ui://techpath/workspace-v2.html');
 assert.deepEqual(open._meta['openai/ui'].entrypoints,[{type:'thread'}]);
 assert.equal(dispatch(request('server/discover')).result.supportedVersions[0],'2026-07-28');
 const profile=dispatch(request('tools/call',{name:'get_techpath_profile',arguments:{}})).result;
-assert.equal(profile.structuredContent.lessons.length,15);
+assert.equal(profile.structuredContent.lessons.length,curriculum.lessons.length);
+assert.ok(profile.structuredContent.lessons.some(l=>l.id==='python-basic-print'));
 const base=dispatch(request('tools/call',{name:'get_techpath_lesson',arguments:{lesson_id:'sql-proc'}})).result;
 assert.ok(base.structuredContent.task);assert.equal(base.structuredContent.reference_solution,undefined);
 const sol=dispatch(request('tools/call',{name:'get_techpath_lesson',arguments:{lesson_id:'sql-proc',include_solution:true}})).result;
@@ -19,7 +21,7 @@ for(const args of [{lesson_id:'missing'},{lesson_id:42},{lesson_id:'sql-proc',in
 const ui=dispatch(request('resources/read',{uri:open._meta.ui.resourceUri})).result.contents[0];
 assert.equal(ui.mimeType,'text/html;profile=mcp-app');assert.ok(ui.text.includes("rpc('ui/message'"));
 assert.ok(!ui.text.includes('<script src='));assert.ok(!ui.text.includes('@import url('));
-for(const asset of ['/','/app.js','/bridge.js','/content.js','/style.css'])assert.equal((await worker.fetch(new Request('https://test.invalid'+asset))).status,200);
+for(const asset of ['/','/app.js','/bridge.js','/content.js','/style.css','/python-content.js','/python.js','/completion.js','/python.css'])assert.equal((await worker.fetch(new Request('https://test.invalid'+asset))).status,200);
 const rpc=await worker.fetch(new Request('https://test.invalid/mcp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(request('tools/list'))}));assert.equal((await rpc.json()).result.tools.length,3);
 assert.equal((await worker.fetch(new Request('https://test.invalid/mcp',{method:'POST',headers:{'Content-Type':'application/json'},body:'broken'}))).status,400);
 assert.equal((await worker.fetch(new Request('https://test.invalid/mcp'))).status,405);

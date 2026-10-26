@@ -1,0 +1,66 @@
+/* Central workspace only: sidebar and tutor keep their forest theme. */
+.shell{--bg:#000;--panel:#0a0a0a;--panel2:#141414;--line:#2d2d2d;--text:#ededed;--muted:#aaa;--accent-dim:#202020;background:#000;min-height:100dvh;color:var(--text)}
+.shell>.topbar{background:#000;border-bottom-color:#292929;backdrop-filter:none}
+.shell>.topbar::after{content:'';position:absolute;left:50%;top:8px;transform:translateX(-50%);width:144px;height:48px;pointer-events:none;opacity:.45;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 144 48' fill='none'%3E%3Cpath d='M54 5a19 19 0 1 0 18 28A19 19 0 0 1 54 5Z' fill='%23ded5bd' fill-opacity='.22' stroke='%23d9c797' stroke-width='1'/%3E%3Cpath d='m19 14 1.4 4.6L25 20l-4.6 1.4L19 26l-1.4-4.6L13 20l4.6-1.4Zm80-5 1 3.5 3.5 1-3.5 1-1 3.5-1-3.5-3.5-1 3.5-1Zm20 18 1.3 4.2 4.2 1.3-4.2 1.3-1.3 4.2-1.3-4.2-4.2-1.3 4.2-1.3Z' fill='%23cec5ac'/%3E%3Ccircle cx='88' cy='33' r='1' fill='%23cec5ac'/%3E%3Ccircle cx='132' cy='12' r='.8' fill='%23cec5ac'/%3E%3C/svg%3E") center/contain no-repeat}
+.shell .card{background:#0a0a0a;border-color:#2d2d2d;box-shadow:none}
+.shell .card[style*="background"]{background:#0a0a0a!important}
+.shell .hero{background:#0d0d0d;border-color:#4b4230}
+.shell .hero::before,.shell .hero::after{display:none}
+.shell :is(.hero p,.hero-bottom .meta,.stat .hint,.quote-label){color:#b8b8b8}
+.shell :is(.hero h2,.page-head h1){color:#eeeae0}
+.shell :is(.button.secondary,.time-choice,.tab,.skill-icon,.mini-task .bullet,.settings-symbol){background:#171717;border-color:#3c3c3c;color:#dedede}
+.shell .button.ghost{background:transparent;border-color:#383838;color:#bcbcbc}
+.shell .button:not(.secondary):not(.ghost){color:#171717}
+.shell :is(.time-choice.selected,.tab.active){background:#25221b;border-color:#a18c53;color:#e5ce91}
+.shell :is(.hint-card,.callout,.grading-result,.foundation-callout,.sql-workspace){background:#111;border-color:#494335;color:#d0d0d0}
+.shell .foundation-callout p{color:#bdbdbd}
+.shell .pill.green{background:#1c231a;border-color:#4c6044;color:#c6daba}
+.shell :is(input,textarea,select){background:#050505;border-color:#3a3a3a;color:#e0e0e0}
+.shell :is(.code-wrap pre,pre.code,.sample-code){background:#000;border-color:#333;color:#deded7}
+.shell code{color:#d7d8cc}
+.shell :is(.challenge-workspace,.personal-layout){background:#050505;border-color:#343434;box-shadow:none}
+.shell :is(.challenge-header,.editor-heading,.challenge-toolbar,.personal-chat-head){background:#101010;border-color:#303030}
+.shell :is(.challenge-problem,.personal-sidebar){background:#0a0a0a;border-color:#303030}
+.shell :is(.challenge-coding,.sql-editor){background:#000}
+.shell :is(.challenge-tabs,.editor-status){background:#0d0d0d;border-color:#303030}
+.shell :is(.challenge-console,.challenge-result,.personal-chat){background:#050505;border-color:#303030}
+.shell .challenge-document{scrollbar-color:#454545 #0a0a0a}
+.shell :is(.challenge-document p,.challenge-document ul,.challenge-document li,.editor-status,.judge-basis,.empty-console p){color:#bfbfbf}
+.shell :is(.challenge-document h1,.challenge-document h2,.challenge-document h3){color:#eee9dc}
+.shell :is(.problem-intro,.challenge-document .challenge-task,.python-continuation){border-color:#3b3b3b}
+.shell .editor-gutter{background:#080808;color:#939393;border-color:#303030}
+.shell .editor-highlight{color:#deded7}
+.shell :is(.compiler-message pre,.challenge-table){background:#080808;border-color:#303030}
+.shell :is(th,.challenge-table th){background:#171717;color:#d7d7d7}
+.shell :is(td,.challenge-table td,.challenge-table th){border-color:#303030}
+.shell .challenge-table td{color:#d7d7d7}
+.shell .panel-splitter{background:#151515;border-color:#333}
+.shell .panel-splitter:hover,.shell .panel-splitter:focus-visible{background:#353128}
+.shell .theory-step{background:#111;border-color:#383838;color:#c4c4c4}
+.shell .theory-step.active{background:#25221c;border-color:#a18c53;color:#ecdaa9}
+.shell .completion-list{background:#131313;border-color:#666;color:#eee}
+.shell .completion-list .selected{background:#343127;outline-color:#b4a780}
+.shell :is(.personal-thread,.personal-message){background:#111;border-color:#333;color:#ddd}
+.shell .personal-thread.selected{background:#25221b;border-color:#8b7d58}
+.shell :is(.personal-compose,.settings-reference>details,.case-list button.active,.foundation-step){background:#141414;border-color:#3a3a3a}
+.shell>footer{background:#000;border-color:#292929}
+.workspace-navigation{display:flex;align-items:center;gap:12px;min-width:0}
+#sidebar-toggle{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;width:40px;height:40px;padding:9px;background:transparent;border-color:transparent;color:#bcbcbc}
+#sidebar-toggle:hover{background:#1a1a1a;border-color:#444}
+#sidebar-toggle:focus-visible{outline:2px solid #d9bf79;outline-offset:2px}
+#sidebar-toggle svg{width:20px;height:20px;pointer-events:none}
+.workspace-navigation #breadcrumb{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body.sidebar-collapsed>.sidebar{display:none!important}
+body.sidebar-collapsed>.shell{margin-left:0!important}
+#sidebar-backdrop{display:none}
+@media(max-width:950px){.shell>.topbar::after{left:42%;width:100px;opacity:.3}}
+@media(max-width:700px){.shell>.topbar::after{display:none}}
+@media(max-width:700px){
+ .workspace-navigation{gap:5px}.workspace-navigation #breadcrumb{max-width:90px;font-size:10px}
+ .shell>.topbar{gap:6px;padding-inline:10px}
+ body.sidebar-expanded>.sidebar{display:block!important;position:fixed;inset:52px auto 0 0;width:min(280px,85vw);height:auto;overflow:auto;z-index:85;border-right:1px solid #435342}
+ body.sidebar-expanded>.sidebar nav{display:flex;flex-direction:column;align-items:stretch;margin-top:22px}
+ body.sidebar-expanded>.sidebar nav a{justify-content:flex-start;padding:13px;font-size:13px}
+ body.sidebar-expanded>.sidebar nav a span{display:inline}
+ #sidebar-backdrop:not([hidden]){display:block;position:fixed;inset:52px 0 0;z-index:80;background:#0009;border:0;padding:0;cursor:pointer}
+}

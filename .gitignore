@@ -13,3 +13,5 @@ docs/qa/
 dist/server/
 dist/.openai/
 .techpath-local/
+data/
+techpath-private-*.json

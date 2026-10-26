@@ -8,18 +8,19 @@
 </head>
 <body>
   <a class="skip" href="#main">Đến nội dung</a>
-  <aside class="sidebar">
+  <aside class="sidebar" id="techpath-sidebar">
     <a class="brand" href="#home" aria-label="TechPath — về tổng quan"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 60 54" fill="currentColor"><path d="M30 3 16 27h28ZM16 27 2 51h28ZM44 27 30 51h28Z"/></svg></span><span>TechPath<small>AN’S LEARNING QUEST</small></span></a>
     <div class="workspace-label">KHÔNG GIAN CỦA AN</div>
     <nav aria-label="Điều hướng chính" id="nav"></nav>
     <div class="side-path"><span class="eyebrow">HƯỚNG ĐI HIỆN TẠI</span><strong>Systems & Data</strong><p>Application Support<br>SQL · Troubleshooting</p><a href="#roadmap">Xem lộ trình <span>↗</span></a></div>
     <div class="side-bottom"><span class="avatar">A</span><div><strong>Vinh An</strong><small>Learn. Build. Understand.</small></div><a href="#settings" aria-label="Cài đặt" class="settings-icon">⚙</a></div>
   </aside>
-  <div class="shell"><header class="topbar"><span id="breadcrumb">Workspace / Tổng quan</span><div><span class="local-status"><i></i> <span id="save-status">Lưu trên thiết bị này</span></span><button id="backup-top" class="button small ghost">↓ Sao lưu</button><button id="open-tutor-top" class="button small secondary open-tutor-btn" title="Mở khung gia sư AI">✨ Mở gia sư AI ↗</button></div></header>
+  <div class="shell"><header class="topbar"><div class="workspace-navigation"><button id="sidebar-toggle" type="button" class="button ghost small" aria-label="Đóng thanh điều hướng" aria-controls="techpath-sidebar" aria-expanded="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button><span id="breadcrumb">Workspace / Tổng quan</span></div><div><span class="local-status"><i></i> <span id="save-status">Lưu trên thiết bị này</span></span><button id="backup-top" class="button small ghost">↓ Sao lưu</button><button id="open-tutor-top" class="button small secondary open-tutor-btn" title="Mở khung gia sư AI">✨ Mở gia sư AI ↗</button></div></header>
   <main id="main" tabindex="-1"></main><footer>TECHPATH / Học để tự giải quyết vấn đề.<button id="open-tutor" class="button secondary small">Mở gia sư ↗</button><span>SQL Server · Windows · Data</span></footer></div>
+  <button id="sidebar-backdrop" type="button" aria-label="Đóng thanh điều hướng" tabindex="-1" hidden></button>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <dialog id="modal"><div id="modal-body"></div><button id="modal-close" class="button secondary">Đóng</button></dialog>
   <input id="import-file" type="file" accept=".json,application/json" hidden>
-  <link rel="stylesheet" href="tutor.css"><link rel="stylesheet" href="theme.css"><link rel="stylesheet" href="challenge.css"><link rel="stylesheet" href="panels.css"><link rel="stylesheet" href="personal.css">
-  <script src="content.js"></script><script src="challenges.js"></script><script src="foundations.js"></script><script src="challenge.js"></script><script src="bridge.js"></script><script src="tutor.js"></script><script src="sql.js"></script><script src="panels.js"></script><script src="personal.js"></script><script src="app.js"></script>
+  <link rel="stylesheet" href="tutor.css"><link rel="stylesheet" href="theme.css"><link rel="stylesheet" href="challenge.css"><link rel="stylesheet" href="panels.css"><link rel="stylesheet" href="personal.css"><link rel="stylesheet" href="python.css"><link rel="stylesheet" href="api.css"><link rel="stylesheet" href="oled.css">
+  <script src="content.js"></script><script src="challenges.js"></script><script src="foundations.js"></script><script src="python-content.js"></script><script src="api-content.js"></script><script src="challenge.js"></script><script src="bridge.js"></script><script src="tutor.js"></script><script src="sql.js"></script><script src="panels.js"></script><script src="personal.js"></script><script src="python.js"></script><script src="api.js"></script><script src="completion.js"></script><script src="sidebar.js"></script><script src="app.js"></script>
 </body></html>

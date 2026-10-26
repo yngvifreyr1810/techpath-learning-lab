@@ -24,7 +24,7 @@
  }
  function highlight(code){const re=/(--[^\n]*|\/\*[\s\S]*?\*\/)|('(?:''|[^'])*')|\b(SELECT|FROM|WHERE|LEFT|RIGHT|INNER|OUTER|JOIN|ON|AND|OR|NOT|NULL|IS|AS|WITH|GROUP|BY|HAVING|ORDER|ASC|DESC|UNION|ALL|CASE|WHEN|THEN|ELSE|END|CREATE|ALTER|PROCEDURE|BEGIN|SET|NOCOUNT|EXEC|EXECUTE|GO|USE|INT|VARCHAR|NVARCHAR|DECIMAL|OVER|PARTITION|EXISTS|SUM|COUNT|COALESCE|CAST|TOP|DISTINCT)\b|\b(\d+(?:\.\d+)?)\b/gi;let last=0,out='';for(const match of code.matchAll(re)){out+=esc(code.slice(last,match.index));out+=`<span class="sql-${match[1]?'comment':match[2]?'string':match[3]?'keyword':'number'}">${esc(match[0])}</span>`;last=match.index+match[0].length;}return out+esc(code.slice(last))+'\n';}
  function mount(){
-  const editor=document.querySelector('.challenge-code');if(!editor)return;
+  const editor=document.querySelector('.challenge-code:not(.python-code)');if(!editor)return;
   const pre=document.querySelector('.editor-highlight'),numbers=document.querySelector('.editor-gutter');
   function cursor(){const before=editor.value.slice(0,editor.selectionStart).split('\n');document.querySelector('#editor-cursor').textContent=`Ln ${before.length}, Col ${before.at(-1).length+1}`;}
   function paint(){pre.querySelector('code').innerHTML=highlight(editor.value);numbers.textContent=Array.from({length:Math.max(12,editor.value.split('\n').length)},(_,i)=>i+1).join('\n');cursor();}

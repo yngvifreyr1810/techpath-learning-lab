@@ -1,0 +1,15 @@
+.api-request-form{padding:18px;display:flex;flex-direction:column;gap:8px;flex-shrink:0}
+.api-request-line{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px}
+.api-request-form label{font-size:12px;margin:0;color:var(--text)}
+.api-request-form :is(input,select,textarea){width:100%;min-width:0;box-sizing:border-box;font:14px/1.5 Consolas,monospace}
+.api-request-form label :is(input,select){display:block;margin-top:6px}
+.api-request-form textarea{height:145px;min-height:100px;resize:vertical}
+.api-body-options summary{font-size:12px;cursor:pointer;padding:8px 0;color:var(--muted)}
+.api-body-options label{display:block;margin-top:12px;margin-bottom:6px}
+.api-workspace .challenge-toolbar{flex-wrap:wrap}
+.api-result [hidden]{display:none!important}
+.api-result .run-neutral{color:var(--text)}
+.api-result pre{white-space:pre-wrap;overflow-wrap:anywhere}
+.api-result .case-list button{min-height:44px}
+.api-result .case-list button:focus-visible{outline:2px solid #d1ba76;outline-offset:2px}
+@media(max-width:700px){.api-request-form{padding:12px}.api-request-line{grid-template-columns:85px minmax(0,1fr)}}
