@@ -75,7 +75,23 @@ const ids = [
  * @returns {Array} Array of model objects with id, label, group
  */
 export function catalogModels(raw) {
-  return ids;
+  const known = new Map(ids.map(model => [model.id, model]));
+  const groups = {gh:'GitHub Copilot', ag:'antigravity', cx:'codex', oc:'opencode', local:'local', qoder:'Qoder', qd:'Qoder'};
+  const result = [], seen = new Set();
+  for (const item of Array.isArray(raw) ? raw : []) {
+    const id = typeof item === 'string' ? item : item?.id;
+    if (typeof id !== 'string' || !id.trim() || seen.has(id)) continue;
+    const prefix = id.split('/')[0];
+    const copilot = prefix === 'gh' || /copilot/i.test(item?.owned_by || item?.provider || '');
+    // Student/Free: never offer or silently map a pinned Copilot model.
+    if (copilot && !/\/auto$/i.test(id)) continue;
+    const qoder = ['qoder','qd'].includes(prefix) || /qoder/i.test(item?.owned_by || item?.provider || '');
+    const previous = known.get(id);
+    result.push({id, label:copilot ? 'Copilot · Auto' : String(item?.name || item?.label || previous?.label || id),
+      group: qoder ? 'Qoder' : copilot ? 'GitHub Copilot' : previous?.group || groups[prefix] || 'workflow'});
+    seen.add(id);
+  }
+  return result;
 }
 
 export function defaultRouterModel(models) {
