@@ -29,8 +29,8 @@ assert.deepEqual(suggestions('SELECT c. FROM dbo.Customers AS c'.slice(0,9),'sql
 const sql='SELECT c.cus\nFROM dbo.Customers AS c';
 const names=Array.from(ctx.TechPathCompletion.suggest(sql,12,'sql','sql-basic-select-customers'),x=>x.label);assert.ok(names.includes('customer_id'));assert.ok(!names.includes('order_id'));
 assert.deepEqual(suggestions("SELECT 'SEL",'sql','sql-basic-select-customers'),[]);
-assert.equal(curriculum.lessons.length,74);assert.equal(new Set(curriculum.lessons.map(l=>l.id)).size,74);
-const pythonLessons=curriculum.lessons.filter(l=>l.module==='python');assert.equal(pythonLessons.length,27);
+assert.ok(curriculum.lessons.length>=74);assert.equal(new Set(curriculum.lessons.map(l=>l.id)).size,curriculum.lessons.length);
+const pythonLessons=curriculum.lessons.filter(l=>l.module==='python'&&!l.roadmapWeek);assert.equal(pythonLessons.length,27);
 for(const l of pythonLessons){
  assert.equal(l.hints.length,3);assert.ok(l.body.includes('Dùng để làm gì?'));assert.ok(l.body.includes('Ví dụ có giải thích'));assert.ok(l.resources[0][1].includes('ix9cRaBkVe0'));
  const run=await runPython(l.solution),structure=await inspectVariable(l.solution,l.id);assert.equal(judgePython(run,l.id,structure).verdict,'pass',l.id);
@@ -61,4 +61,4 @@ const html=ctx.TechPathPython.render(lesson,draft,null,[]);assert.ok(html.includ
 ctx.TechPathPython.page(1);assert.ok(ctx.TechPathPython.render(lesson,draft,null,[]).includes('Kiến thức cần biết'));
 ctx.TechPathPython.page(3);assert.ok(ctx.TechPathPython.render(lesson,draft,null,[]).includes('Output mong đợi'));
 const practice=ctx.TechPathPython.render(lesson,draft,null,[],true);assert.ok(practice.includes('challenge-split'));assert.ok(practice.includes('Python Editor'));assert.ok(!practice.includes('data-review'));assert.ok(practice.includes('Lý thuyết & ví dụ'));
-console.log('PASS: 74 lessons, 27 Python exercises and solutions, per-lesson output, real Python limits, AST variable requirements reject literal/comment/dead-code shortcuts, practical examples, completion and theory rendering.');
+console.log('PASS: original 27 Python exercises and solutions, per-lesson output, real Python limits, AST variable requirements reject literal/comment/dead-code shortcuts, practical examples, completion and theory rendering.');

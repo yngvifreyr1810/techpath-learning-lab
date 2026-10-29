@@ -1,5 +1,14 @@
 # Ghi chú thay đổi TechPath
 
+## 2026-10-29 — Lộ trình AI, workspace Python và học trên điện thoại
+
+- Bản đồ 12 tuần, tuần 1–3 học được: 18 buổi, 5 lý thuyết, 27 bài Python mới và 3 checkpoint. Tuần 4–12 ghi Sắp có.
+- Quiz được chấm trên webapp, không cần connector máy tính. Thêm nút đi tiếp, trạng thái ôn tập, backup và sao chép ngữ cảnh.
+- Workspace Python tham khảo 10 bài DataCamp: đề/hướng dẫn riêng, ví dụ và gợi ý tại chỗ, khung code tùy chọn, giữ Undo/draft/Run/Submit.
+- Tách các ý kiến thức và tăng độ dễ đọc; chỉnh bố cục màn hình thấp.
+- Python/SQL/API lab và gia sư tích hợp vẫn cần connector trên máy tính. Tiến độ lưu riêng từng trình duyệt; không tự đồng bộ thiết bị.
+
+
 ## 2026-10-27 — Python/API Foundations và không gian học
 
 - Thêm 27 bài Python: sáu bài print/biến văn bản, tiếp theo là 21 bài cho bảy buổi luyện hai biến, int/float, f-string, đổi kiểu, phép cộng và ôn tổng hợp.

@@ -73,7 +73,7 @@ GO`,
 const addLesson = (id,module,title,minutes,summary,body,task,hints,solution,expected,checks,transfer,resources=[],prior=false) => TECHPATH.lessons.push({id,module,title,minutes,summary,body,task,hints,solution,expected,checks,transfer,resources,prior});
 
 addLesson('sql-join','sql','LEFT JOIN: tìm phần dữ liệu còn thiếu',30,'Phân biệt điều kiện trong ON và WHERE qua đơn Paid không có payment thành công.',
-`<p>Trong SupportLab, Orders là danh sách cần kiểm tra. Một đơn có thể có nhiều lần thanh toán với trạng thái khác nhau. Quy tắc cần tìm là <strong>không tồn tại payment Succeeded</strong>, thay vì chỉ không có bất kỳ payment nào.</p><p>Điều kiện ở ON quyết định payment nào được nối vào. Sau khi nối, WHERE chọn những dòng cần giữ. Lọc trạng thái bên Payments trong WHERE có thể loại các dòng NULL mà ta muốn tìm.</p><blockquote>Hãy mô tả tập dòng cần giữ trước khi viết điều kiện. NULL ở payment_id sau phép nối nghĩa là không tìm thấy payment thỏa điều kiện ON.</blockquote>`,
+`<ul><li>Trong SupportLab, Orders là danh sách cần kiểm tra.</li><li>Một đơn có thể có nhiều lần thanh toán với trạng thái khác nhau.</li><li>Quy tắc cần tìm là <strong>không tồn tại payment Succeeded</strong>, thay vì chỉ không có bất kỳ payment nào.</li></ul><ul><li>Điều kiện ở ON quyết định payment nào được nối vào.</li><li>Sau khi nối, WHERE chọn những dòng cần giữ.</li><li>Lọc trạng thái bên Payments trong WHERE có thể loại các dòng NULL mà ta muốn tìm.</li></ul><blockquote>Hãy mô tả tập dòng cần giữ trước khi viết điều kiện. NULL ở payment_id sau phép nối nghĩa là không tìm thấy payment thỏa điều kiện ON.</blockquote>`,
 'Tìm order Paid không có payment Succeeded. Trả về order_id và order_total. Không thay đổi dữ liệu.',
 ['Bảng nào chứa toàn bộ những đơn bạn muốn kiểm tra? Bảng đó nên nằm bên nào của LEFT JOIN?','Một payment Pending có được coi là khớp không? Điều kiện nào quyết định việc khớp?','Sau khi chỉ nối payment Succeeded, cột khóa bên Payments sẽ là gì khi không có payment phù hợp?'],
 `SELECT o.order_id, o.order_total
@@ -88,7 +88,7 @@ WHERE o.order_status = 'Paid'
 'Viết lại yêu cầu bằng NOT EXISTS. Giải thích vì sao cách này vẫn giữ một dòng cho mỗi order khi có nhiều payment.',[],true);
 
 addLesson('sql-reconcile','sql','Đối soát số tiền theo từng đơn',40,'SUM, GROUP BY, HAVING và ý nghĩa nghiệp vụ khi thay NULL bằng 0.',
-`<p>Chọn mức chi tiết: <strong>mỗi dòng là một order Paid</strong>. Cộng những payment thành công theo từng đơn trước khi so sánh. Với lab này, không có payment Succeeded được hiểu là tổng tiền thành công bằng 0.</p><p>WHERE lọc dòng trước gom nhóm; HAVING lọc nhóm sau khi tính tổng. Công thức difference = total_payment - order_total: âm là thiếu, dương là thừa.</p><p>Đơn 1003 có tổng đơn 0 và tổng payment 0 nên không lệch tiền. Nó vi phạm một quy tắc khác: đơn Paid phải có tổng dương.</p>`,
+`<ul><li>Chọn mức chi tiết: <strong>mỗi dòng là một order Paid</strong>.</li><li>Cộng những payment thành công theo từng đơn trước khi so sánh.</li><li>Với lab này, không có payment Succeeded được hiểu là tổng tiền thành công bằng 0.</li></ul><p>WHERE lọc dòng trước gom nhóm; HAVING lọc nhóm sau khi tính tổng. Công thức difference = total_payment - order_total: âm là thiếu, dương là thừa.</p><p>Đơn 1003 có tổng đơn 0 và tổng payment 0 nên không lệch tiền. Nó vi phạm một quy tắc khác: đơn Paid phải có tổng dương.</p>`,
 'Trả về order_id, order_total, total_payment, difference cho đơn Paid có chênh lệch. Mọi phép tính và cột hiển thị phải xử lý NULL nhất quán.',
 ['Nếu một đơn có hai payment thành công, bạn cần so sánh từng payment hay tổng cả hai?','Đơn không có payment phải còn trong dữ liệu trước GROUP BY. Kiểm tra lại ON và WHERE.','Biểu thức SUM cần được xử lý NULL ở cả SELECT và điều kiện HAVING.'],
 `SELECT o.order_id, o.order_total,
@@ -122,7 +122,7 @@ WHERE email IS NOT NULL GROUP BY email HAVING COUNT(*) > 1;`,
 'Tìm customer chưa có đơn hàng. Sau đó nêu một lý do vì sao trường hợp này có thể hoàn toàn hợp lệ.',[],true);
 
 addLesson('sql-cte','sql','CTE: từ nhóm email đến từng customer',30,'Chọn đúng grain của báo cáo và nối lại dữ liệu chi tiết.',
-`<p>Query GROUP BY email trả về một dòng cho mỗi email. Người xử lý lại cần biết ID của từng customer. Dùng CTE tìm tập email trùng, rồi nối với Customers để lấy chi tiết.</p><p>CTE chỉ có hiệu lực với statement ngay sau nó. Nó giúp đặt tên cho một bước logic; không mặc nhiên chạy nhanh hơn subquery.</p>`,
+`<ul><li>Query GROUP BY email trả về một dòng cho mỗi email.</li><li>Người xử lý lại cần biết ID của từng customer.</li><li>Dùng CTE tìm tập email trùng, rồi nối với Customers để lấy chi tiết.</li></ul><p>CTE chỉ có hiệu lực với statement ngay sau nó. Nó giúp đặt tên cho một bước logic; không mặc nhiên chạy nhanh hơn subquery.</p>`,
 'Trả về customer_id, customer_name, email của từng customer có email trùng; sắp xếp email và customer_id tăng dần.',
 ['Tách thành hai câu hỏi: email nào trùng, và customer nào có các email đó?','CTE chỉ cần cột email. Kết quả chi tiết lấy từ Customers.','Hai tập dữ liệu dùng email làm điều kiện INNER JOIN.'],
 `;WITH DuplicateEmails AS (
@@ -159,7 +159,7 @@ FROM dbo.Customers c
 INNER JOIN DuplicateEmails d ON c.email = d.email;`;
 
 addLesson('sql-report','sql','UNION ALL: một danh sách lỗi để xử lý',40,'Gộp các rule theo một cấu trúc nhất quán và tránh chuyển kiểu ngầm định.',
-`<p>Mỗi dòng report đại diện cho <strong>một lỗi của một bản ghi</strong>. Một order có hai lỗi được phép xuất hiện hai dòng. Dùng UNION ALL để giữ mọi lỗi; UNION có thể loại dòng trùng.</p><p>Mỗi SELECT phải cùng số cột và kiểu dữ liệu tương thích theo vị trí. observed_value có thể là tiền, ID hoặc email: hãy chuyển rõ sang NVARCHAR để giữ cả Unicode.</p><p>Severity hôm nay là quy ước của lab: lỗi order là High, email trùng là Medium. Trong thực tế, mức độ phụ thuộc ảnh hưởng nghiệp vụ.</p>`,
+`<ul><li>Mỗi dòng report đại diện cho <strong>một lỗi của một bản ghi</strong>.</li><li>Một order có hai lỗi được phép xuất hiện hai dòng.</li><li>Dùng UNION ALL để giữ mọi lỗi; UNION có thể loại dòng trùng.</li></ul><p>Mỗi SELECT phải cùng số cột và kiểu dữ liệu tương thích theo vị trí. observed_value có thể là tiền, ID hoặc email: hãy chuyển rõ sang NVARCHAR để giữ cả Unicode.</p><p>Severity hôm nay là quy ước của lab: lỗi order là High, email trùng là Medium. Trong thực tế, mức độ phụ thuộc ảnh hưởng nghiệp vụ.</p>`,
 'Gộp ba rule thành issue_type, record_type, record_id, observed_value. Nếu muốn, thêm severity đúng vị trí trong mọi nhánh.',
 ['Viết một SELECT với text cố định mô tả lỗi trước; chạy đúng rồi mới nối nhánh tiếp theo.','Record ID của rule customer thiếu phải là order_id; observed_value lấy customer_id từ Orders.','Rule email trùng phải JOIN Customers với CTE, không trả COUNT(*) làm record_id.'],
 report,
@@ -168,7 +168,7 @@ report,
 'Thêm rule Customer email is missing cho customer có email NULL, severity Low. Tổng report lúc này có 5 lỗi.',[],true);
 
 addLesson('sql-proc','sql','Đóng gói report thành stored procedure',45,'Bài tiếp nối hiện tại: lưu logic kiểm tra để gọi bằng một lệnh.',
-`<p>Stored procedure lưu nhóm lệnh trong database. CREATE OR ALTER tạo mới hoặc cập nhật; EXEC thực thi. Bài này chỉ đọc dữ liệu và trả report.</p><p>Chọn database SupportLab trước. CREATE OR ALTER PROCEDURE phải bắt đầu một batch riêng. Trong SSMS, GO phân tách batch; nó không phải lệnh T-SQL của database engine.</p><p>SET NOCOUNT ON ngăn các thông báo số dòng bị tác động, không ẩn result set của SELECT. dbo là schema tổ chức object; usp_ là quy ước tên của lab.</p><blockquote>Khung: USE SupportLab → GO → CREATE OR ALTER PROCEDURE ... AS BEGIN ... END → GO → EXEC ...</blockquote>`,
+`<ul><li>Stored procedure lưu nhóm lệnh trong database.</li><li>CREATE OR ALTER tạo mới hoặc cập nhật; EXEC thực thi.</li><li>Bài này chỉ đọc dữ liệu và trả report.</li></ul><ul><li>Chọn database SupportLab trước.</li><li>CREATE OR ALTER PROCEDURE phải bắt đầu một batch riêng.</li><li>Trong SSMS, GO phân tách batch; nó không phải lệnh T-SQL của database engine.</li></ul><p>SET NOCOUNT ON ngăn các thông báo số dòng bị tác động, không ẩn result set của SELECT. dbo là schema tổ chức object; usp_ là quy ước tên của lab.</p><blockquote>Khung: USE SupportLab → GO → CREATE OR ALTER PROCEDURE ... AS BEGIN ... END → GO → EXEC ...</blockquote>`,
 'Tạo dbo.usp_GetDataQualityIssues bằng report ba rule. Thêm severity High/High/Medium. Gọi EXEC và kiểm tra 4 lỗi, rồi xem nội dung lưu bằng sys.sp_helptext.',
 ['Bắt đầu với report đang chạy đúng. Bạn cần đặt nó ở vị trí nào bên trong BEGIN ... END?','Nếu lỗi “must be the first statement in a query batch”, xem có cần GO trước CREATE OR ALTER không.','Chỉnh SELECT chưa cập nhật procedure cho đến khi bạn chạy lại CREATE OR ALTER. Sau đó mới EXEC.'],
 `USE SupportLab;
@@ -188,7 +188,7 @@ EXEC sys.sp_helptext N'dbo.usp_GetDataQualityIssues';`,
 [['Tạo stored procedure · Microsoft Learn','https://learn.microsoft.com/en-us/sql/relational-databases/stored-procedures/create-a-stored-procedure']]);
 
 addLesson('sql-params','sql','Tham số: lọc report theo severity',45,'Từ report cố định đến yêu cầu linh hoạt mà không copy nhiều query.',
-`<p>Tham số là dữ liệu đầu vào của procedure, ví dụ @Severity VARCHAR(10) = NULL. Quy ước NULL nghĩa là lấy mọi mức. Đưa toàn bộ UNION ALL vào CTE Issues, rồi SELECT bên ngoài để lọc.</p><p>Đừng thêm WHERE chỉ ở SELECT cuối của UNION ALL: nó chỉ lọc nhánh cuối. Điều kiện OR @Severity IS NULL cho phép bật/tắt bộ lọc.</p>`,
+`<ul><li>Tham số là dữ liệu đầu vào của procedure, ví dụ @Severity VARCHAR(10) = NULL.</li><li>Quy ước NULL nghĩa là lấy mọi mức.</li><li>Đưa toàn bộ UNION ALL vào CTE Issues, rồi SELECT bên ngoài để lọc.</li></ul><p>Đừng thêm WHERE chỉ ở SELECT cuối của UNION ALL: nó chỉ lọc nhánh cuối. Điều kiện OR @Severity IS NULL cho phép bật/tắt bộ lọc.</p>`,
 'Nâng cấp usp_GetDataQualityIssues: không truyền tham số trả 4 lỗi, High trả 2 lỗi, Medium trả 2 lỗi, Low trả 0 trên dataset gốc.',
 ['Cần lọc toàn bộ kết quả hợp nhất. Bạn có thể đặt kết quả ấy vào một CTE có tên Issues không?','Tham số đứng sau tên procedure, trước AS. Default NULL cho phép không truyền giá trị.','Điều kiện ở SELECT ngoài: @Severity IS NULL OR severity = @Severity.'],
 `-- Cấu trúc: giữ ba SELECT từ bài trước bên trong Issues.
@@ -224,7 +224,7 @@ EXEC dbo.usp_GetDataQualityIssues @Severity = 'High';`,
 'Thêm @RecordType để lọc Order/Customer; dự đoán số dòng của các tổ hợp trước khi chạy.');
 
 addLesson('sql-debug','sql','Đọc lỗi và chọn bước kiểm tra tiếp theo',35,'Luyện conversion error, invalid column và kết quả sai dù query chạy được.',
-`<p>Đọc lỗi theo ba phần: thông báo nói gì, biểu thức nào liên quan, và cách kiểm chứng giả thuyết. “Conversion failed” thường cần xem kiểu dữ liệu, thứ tự cột UNION và giá trị thực tế.</p><p>Lỗi logic không luôn có thông báo: WHERE lọc payment Succeeded có thể làm mất đơn thiếu payment. Muốn đánh giá “tối ưu”, cần query, schema/index, execution plan và số liệu thực thi. Chỉ nhìn câu SQL không đủ kết luận nhanh/chậm.</p>`,
+`<p>Đọc lỗi theo ba phần: thông báo nói gì, biểu thức nào liên quan, và cách kiểm chứng giả thuyết. “Conversion failed” thường cần xem kiểu dữ liệu, thứ tự cột UNION và giá trị thực tế.</p><ul><li>Lỗi logic không luôn có thông báo: WHERE lọc payment Succeeded có thể làm mất đơn thiếu payment.</li><li>Muốn đánh giá “tối ưu”, cần query, schema/index, execution plan và số liệu thực thi.</li><li>Chỉ nhìn câu SQL không đủ kết luận nhanh/chậm.</li></ul>`,
 'Giải thích vì sao SELECT CAST(0.00 AS VARCHAR(30)) UNION ALL SELECT 99 gây conversion error. Sửa cho observed_value là text. Viết ticket ngắn: triệu chứng, giả thuyết, kiểm chứng, cách sửa.',
 ['Hai SELECT có cùng vị trí cột nhưng cùng kiểu chưa?','INT được ưu tiên hơn VARCHAR khi UNION chọn kiểu chung. Chuỗi 0.00 có chuyển trực tiếp thành INT không?','Thử ép cả hai phía sang NVARCHAR, rồi đối chiếu với mục tiêu hiển thị.'],
 `SELECT CAST(0.00 AS NVARCHAR(150)) AS observed_value
@@ -235,7 +235,7 @@ SELECT CAST(99 AS NVARCHAR(150));`,
 'Một query trả 10 dòng thay vì 5 sau JOIN: nêu 3 điều cần kiểm tra trước khi dùng DISTINCT.');
 
 addLesson('win-evidence','systems','Windows: điều tra từ triệu chứng',35,'Thu thập bằng chứng trước khi thay đổi cấu hình.',
-`<p>Tình huống: máy chậm sau khi đăng nhập. Tách chậm CPU, RAM, disk, network hay một ứng dụng cụ thể. Ghi thời điểm, ứng dụng và phạm vi trước khi thử cách sửa.</p><p>Task Manager và Resource Monitor giúp quan sát tài nguyên; Event Viewer giúp đối chiếu sự kiện cùng thời điểm. Một Event ID đơn lẻ chưa chứng minh nguyên nhân. Ghi lại thay đổi và cách quay về trạng thái trước nếu cần.</p>`,
+`<ul><li>Tình huống: máy chậm sau khi đăng nhập.</li><li>Tách chậm CPU, RAM, disk, network hay một ứng dụng cụ thể.</li><li>Ghi thời điểm, ứng dụng và phạm vi trước khi thử cách sửa.</li></ul><ul><li>Task Manager và Resource Monitor giúp quan sát tài nguyên; Event Viewer giúp đối chiếu sự kiện cùng thời điểm.</li><li>Một Event ID đơn lẻ chưa chứng minh nguyên nhân.</li><li>Ghi lại thay đổi và cách quay về trạng thái trước nếu cần.</li></ul>`,
 'Chọn một lần máy/ứng dụng chậm mà bạn từng gặp. Viết kế hoạch kiểm tra 5 bước, ghi bằng chứng quan sát từ Task Manager. Không cần cố tạo lỗi trên máy đang dùng.',
 ['Chậm toàn máy hay chỉ một app? Từ khi nào? Sau thay đổi gì?','Nếu CPU bình thường nhưng disk busy cao, giả thuyết nào đáng kiểm tra tiếp?','Mỗi bước cần nêu bạn muốn chứng minh hoặc loại trừ điều gì.'],
 `Get-Process | Sort-Object CPU -Descending | Select-Object -First 10 Name, Id, CPU
@@ -247,7 +247,7 @@ Get-Service | Where-Object Status -eq 'Running' | Select-Object -First 10 Name, 
 'Chỉ trình duyệt chậm còn app offline bình thường: sửa kế hoạch điều tra cho tình huống này.');
 
 addLesson('win-network','systems','Network: IP, gateway và DNS',40,'Khoanh vùng lỗi “không vào được mạng” bằng các phép kiểm tra có mục đích.',
-`<p>Máy có IP chưa? Gateway có hợp lý không? Truy cập tên miền thất bại do kết nối hay DNS? Test từng lớp giúp thu hẹp phạm vi.</p><p>Ping thất bại không đủ kết luận máy đích mất mạng: ICMP có thể bị chặn. nslookup kiểm tra phân giải tên; Test-NetConnection kiểm tra kết nối TCP đến một cổng cụ thể.</p>`,
+`<ul><li>Máy có IP chưa?</li><li>Gateway có hợp lý không?</li><li>Truy cập tên miền thất bại do kết nối hay DNS?</li><li>Test từng lớp giúp thu hẹp phạm vi.</li></ul><p>Ping thất bại không đủ kết luận máy đích mất mạng: ICMP có thể bị chặn. nslookup kiểm tra phân giải tên; Test-NetConnection kiểm tra kết nối TCP đến một cổng cụ thể.</p>`,
 'Ghi IP/gateway/DNS bằng ipconfig /all. Thử nslookup example.com và kiểm tra cổng 443. Viết mỗi lệnh đang kiểm tra điều gì; che IP nội bộ nếu chia sẻ bản ghi.',
 ['IP, gateway và DNS phục vụ ba nhiệm vụ gì khác nhau?','Nếu nslookup thất bại nhưng TCP tới một IP hợp lệ thành công, bạn nghi ngờ lớp nào?','Không dùng ping làm bằng chứng duy nhất; chọn phép kiểm tra sát ứng dụng.'],
 `ipconfig /all
@@ -259,7 +259,7 @@ Test-NetConnection example.com -Port 443`,
 'Máy vào được web nhưng một app không kết nối database. Bạn cần hỏi thêm hostname, port, VPN và thông báo lỗi như thế nào?');
 
 addLesson('win-powershell','systems','PowerShell: bản kiểm kê workstation',45,'Đọc thông tin máy và xuất report bằng script nhỏ.',
-`<p>PowerShell truyền object qua pipeline. Get-Help và Get-Member giúp tìm cú pháp và thuộc tính thay vì đoán. Script đầu chỉ đọc thông tin máy và xuất CSV vào thư mục bạn chọn.</p><p>Chọn thuộc tính cần thiết. Không đưa tên máy, user, serial hoặc IP cá nhân lên repo công khai; dùng output giả lập cho portfolio.</p>`,
+`<ul><li>PowerShell truyền object qua pipeline.</li><li>Get-Help và Get-Member giúp tìm cú pháp và thuộc tính thay vì đoán.</li><li>Script đầu chỉ đọc thông tin máy và xuất CSV vào thư mục bạn chọn.</li></ul><p>Chọn thuộc tính cần thiết. Không đưa tên máy, user, serial hoặc IP cá nhân lên repo công khai; dùng output giả lập cho portfolio.</p>`,
 'Tạo script xuất Windows version, RAM tổng và dung lượng ổ đĩa. Ghi đơn vị GB và giải thích mỗi lệnh. Chạy trong PowerShell bình thường trước khi nghĩ đến quyền admin.',
 ['Bắt đầu bằng từng lệnh Get-CimInstance Win32_OperatingSystem và Get-Volume để quan sát object.','RAM từ Win32_ComputerSystem được tính bằng byte. Chia cho 1GB và làm tròn.','Gộp thành PSCustomObject rồi Export-Csv -NoTypeInformation.'],
 `$os = Get-CimInstance Win32_OperatingSystem
@@ -277,7 +277,7 @@ Get-Volume | Select-Object DriveLetter, FileSystemLabel,
 [['PowerShell · Microsoft Learn','https://learn.microsoft.com/en-us/training/paths/get-started-windows-powershell/']]);
 
 addLesson('excel-reconcile','reporting','Excel: đối soát hai nguồn',40,'Dùng bảng Excel, SUMIFS và Pivot để kiểm tra kết quả SQL.',
-`<p>Xuất Orders và Payments từ SSMS thành CSV. Kiểm tra delimiter, decimal và kiểu dữ liệu khi import. Biến vùng dữ liệu thành Excel Table để công thức mở rộng ổn định.</p><p>Cần cộng mọi payment Succeeded theo order_id. XLOOKUP một dòng có thể sai nếu một order có nhiều payment; SUMIFS hoặc Pivot phù hợp hơn.</p>`,
+`<ul><li>Xuất Orders và Payments từ SSMS thành CSV.</li><li>Kiểm tra delimiter, decimal và kiểu dữ liệu khi import.</li><li>Biến vùng dữ liệu thành Excel Table để công thức mở rộng ổn định.</li></ul><p>Cần cộng mọi payment Succeeded theo order_id. XLOOKUP một dòng có thể sai nếu một order có nhiều payment; SUMIFS hoặc Pivot phù hợp hơn.</p>`,
 'Trong Excel, tạo total_payment và difference cho Orders. Lọc Paid có difference khác 0; đối chiếu kết quả với SQL.',
 ['Mối quan hệ order → payment là một-nhiều. Công cụ nào cộng được nhiều dòng?','SUMIFS cần hai điều kiện: order_id và payment_status.','Đảm bảo payment_amount là số, không phải text sau import.'],
 `=SUMIFS(Payments[payment_amount],Payments[order_id],[@order_id],Payments[payment_status],"Succeeded")
@@ -288,7 +288,7 @@ addLesson('excel-reconcile','reporting','Excel: đối soát hai nguồn',40,'D�
 'Tạo Pivot đếm số đơn lệch theo trạng thái; giải thích vì sao không cộng số đơn sau JOIN payments.');
 
 addLesson('bi-model','reporting','Power BI: báo cáo vận hành đáng tin',50,'Mô hình dữ liệu, Power Query và measure trước khi trang trí dashboard.',
-`<p>Load Customers, Orders và Payments bằng Power Query. Gán kiểu dữ liệu đúng; kiểm tra quan hệ một-nhiều. Cần ghi rõ khóa lỗi customer 99 thay vì loại dòng ấy một cách vô thức.</p><p>Report đầu chỉ cần số đơn Paid, số order lệch tiền và bảng chi tiết. Kiểm chứng với SQL trước khi chọn màu hoặc thêm biểu đồ. Measure DAX được tính theo bộ lọc hiện tại.</p>`,
+`<ul><li>Load Customers, Orders và Payments bằng Power Query.</li><li>Gán kiểu dữ liệu đúng; kiểm tra quan hệ một-nhiều.</li><li>Cần ghi rõ khóa lỗi customer 99 thay vì loại dòng ấy một cách vô thức.</li></ul><ul><li>Report đầu chỉ cần số đơn Paid, số order lệch tiền và bảng chi tiết.</li><li>Kiểm chứng với SQL trước khi chọn màu hoặc thêm biểu đồ.</li><li>Measure DAX được tính theo bộ lọc hiện tại.</li></ul>`,
 'Tạo report một trang từ SupportLab: tổng order, bảng chi tiết lỗi từ report đã xuất, và bộ lọc severity. Chụp lại report để đưa vào portfolio.',
 ['Report gốc có 4 lỗi: 2 thuộc Order và 2 thuộc Customer. Hãy định nghĩa chính xác chỉ số bạn đếm.','COUNTROWS(Issues) đếm lỗi, không mặc nhiên đếm order. Một order có thể có nhiều rule.','Kiểm chứng từng measure bằng kết quả SQL và thử filter.'],
 `Issue Count = COUNTROWS(Issues)
@@ -301,7 +301,7 @@ High Issue Count = CALCULATE([Issue Count], Issues[severity] = "High")
 [['Power BI learning paths','https://learn.microsoft.com/en-us/power-bi/fundamentals/power-bi-learning-path-directory']]);
 
 addLesson('career-ticket','career','Viết ticket và giải thích bằng tiếng Anh',30,'Luyện giao tiếp kỹ thuật có cấu trúc, từ lỗi SupportLab.',
-`<p>Mục tiêu không phải nói nhiều. Ticket tốt giúp đồng đội tái hiện vấn đề, thấy bằng chứng và biết bước tiếp theo. Tách observed facts khỏi hypotheses.</p><p>Khung tiếng Anh: Summary → Impact → Evidence → Investigation → Next step. Đừng gọi dữ liệu giả lập là sự cố production bạn đã xử lý.</p>`,
+`<ul><li>Mục tiêu không phải nói nhiều.</li><li>Ticket tốt giúp đồng đội tái hiện vấn đề, thấy bằng chứng và biết bước tiếp theo.</li><li>Tách observed facts khỏi hypotheses.</li></ul><p>Khung tiếng Anh: Summary → Impact → Evidence → Investigation → Next step. Đừng gọi dữ liệu giả lập là sự cố production bạn đã xử lý.</p>`,
 'Viết ticket 100–150 từ bằng tiếng Anh cho order 1006: Paid, customer_id 99 không tồn tại, không có payment thành công. Chưa xác nhận nguyên nhân, chưa tự sửa dữ liệu.',
 ['Nêu quan sát cụ thể: order ID, trạng thái, khóa tham chiếu.','Tách hai vấn đề thành hai bằng chứng; chưa biết chúng có cùng nguyên nhân không.','Next step có thể là kiểm tra luồng import và nguồn dữ liệu, thay vì tự gán customer bất kỳ.'],
 `Summary: Order 1006 references a missing customer in SupportLab.
@@ -316,7 +316,7 @@ Next step: Check the source/import rules and confirm ownership before correcting
 'Giải thích cùng sự cố trong 60 giây như đang bàn giao cho developer.');
 
 addLesson('career-portfolio','career','GitHub: minh chứng quy trình làm việc',40,'Đóng gói lab và luyện trả lời phỏng vấn từ những gì đã thực sự làm.',
-`<p>Repository cần người khác hiểu được bài toán và chạy lại lab. Giữ schema, dữ liệu giả lập, report, procedure, ticket và README. Những chỗ chưa hiểu ghi vào limitations.</p><p>Câu chuyện phỏng vấn: bài toán → quy tắc → lựa chọn SQL → cách kiểm chứng → giới hạn. Đừng chỉ liệt kê công cụ. Intern/Fresher vẫn có thể trình bày quá trình điều tra rõ ràng.</p>`,
+`<ul><li>Repository cần người khác hiểu được bài toán và chạy lại lab.</li><li>Giữ schema, dữ liệu giả lập, report, procedure, ticket và README.</li><li>Những chỗ chưa hiểu ghi vào limitations.</li></ul><ul><li>Câu chuyện phỏng vấn: bài toán → quy tắc → lựa chọn SQL → cách kiểm chứng → giới hạn.</li><li>Đừng chỉ liệt kê công cụ.</li><li>Intern/Fresher vẫn có thể trình bày quá trình điều tra rõ ràng.</li></ul>`,
 'Chuẩn bị README với 6 mục: Problem, Dataset, Setup, Rules, Findings, Limitations. Viết câu trả lời: vì sao chọn LEFT JOIN và vì sao UNION ALL?',
 ['Người đọc chưa biết SupportLab; phải giải thích dữ liệu giả lập và cách chạy trước.','Mỗi ảnh hoặc kết quả nên đi cùng một câu giải thích ý nghĩa.','Thử trả lời khi đóng lời giải: điều gì hỏng nếu đặt Succeeded trong WHERE?'],
 `supportlab/

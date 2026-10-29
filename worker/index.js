@@ -1,3 +1,4 @@
+const learningToken=crypto.randomUUID();
 /* Sites authenticates /mcp before forwarding. No tokens or user state stored here. */
 const RESOURCE='ui://techpath/workspace-v2.html';
 const MIME='text/html;profile=mcp-app';
@@ -56,6 +57,16 @@ export function dispatch(message){
 export default {
  async fetch(request){
   const url=new URL(request.url);
+  if(url.pathname.startsWith('/api/learning/')){
+   if(request.headers.get('origin')&&request.headers.get('origin')!==url.origin)return json({error:'Forbidden'},403);
+   if(url.pathname==='/api/learning/status'&&request.method==='GET')return json({ok:true,token:learningToken,version:ROADMAP.version});
+   if(url.pathname!=='/api/learning/check'||request.method!=='POST')return json({error:'Not found'},404);
+   if(request.headers.get('X-TechPath-Token')!==learningToken)return json({error:'Kết nối hết hạn. Bấm kiểm tra lại.'},403);
+   if(!request.headers.get('Content-Type')?.startsWith('application/json'))return json({error:'JSON required'},415);
+   try{const raw=await request.text();if(new TextEncoder().encode(raw).length>16384)return json({error:'Dữ liệu quá dài'},413);
+    const data=JSON.parse(raw);return json(gradeKnowledge({lessons:LESSONS,roadmap:ROADMAP},data.id,data.answers));
+   }catch(e){return json({error:e.message},400);}
+  }
   if(url.pathname==='/mcp'){
    if(request.method==='GET')return new Response('Stateless MCP endpoint: POST JSON-RPC.',{status:405,headers:{Allow:'POST'}});
    if(request.method!=='POST')return new Response(null,{status:405,headers:{Allow:'POST'}});

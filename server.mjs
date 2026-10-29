@@ -7,6 +7,7 @@ import {tutorRoute,closeTutor} from './tutor-http.mjs';
 import {sqlRoute} from './sql-lab.mjs';
 import {pythonRoute} from './python-lab.mjs';
 import {apiRoute} from './api-lab.mjs';
+import {learningRoute} from './learning-lab.mjs';
 const root=path.resolve(fileURLToPath(new URL('./dist/',import.meta.url)));
 const port=Number(process.env.PORT||4173);
 const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml'};
@@ -24,6 +25,7 @@ http.createServer(async(req,res)=>{
   if(await sqlRoute(req,res,pathname))return;
   if(await pythonRoute(req,res,pathname))return;
   if(await apiRoute(req,res,pathname))return;
+  if(await learningRoute(req,res,pathname))return;
   if(req.method!=='GET'&&req.method!=='HEAD'){res.writeHead(405);res.end();return;}
   const target=path.resolve(root,'.'+(pathname==='/'?'/index.html':pathname));
   if(!target.startsWith(root+path.sep)){res.writeHead(403);res.end('Forbidden');return;}

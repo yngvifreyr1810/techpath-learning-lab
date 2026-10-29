@@ -43,3 +43,11 @@ handlers.message({source:parent,data:{jsonrpc:'2.0',id:outgoing.id,result:{}}});
 assert.equal(sent.filter(m=>m.method==='ui/message').length,1);
 await assert.rejects(ctx.TechPathHost.send('x'.repeat(60001)));
 console.log('PASS: MCP discovery/tools/resources; no unsolicited solutions; Worker HTTP routes; host handshake and explicit-only single message; foreign-frame rejection. Hosted chat UI still needs live verification.');
+
+const quizToken=(await (await worker.fetch(new Request('https://test.invalid/api/learning/status'))).json()).token;
+const quizRequest=(answers,origin='https://test.invalid',token=quizToken)=>new Request('https://test.invalid/api/learning/check',{method:'POST',headers:{Origin:origin,'Content-Type':'application/json','X-TechPath-Token':token},body:JSON.stringify({id:'ai-role',answers,passed:true})});
+assert.equal((await (await worker.fetch(quizRequest([1,0,2]))).json()).passed,true);
+assert.equal((await (await worker.fetch(quizRequest([0,1,0]))).json()).passed,false);
+assert.equal((await worker.fetch(quizRequest([1,0,2],'https://foreign.invalid'))).status,403);
+assert.equal((await worker.fetch(quizRequest([1,0,2],'https://test.invalid','invalid'))).status,403);
+console.log('PASS: hosted knowledge quiz without local connector; wrong answers, origin and token rejected.');

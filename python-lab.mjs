@@ -92,6 +92,45 @@ export function judgePython(result,lessonId='python-basic-print',structurePassed
  const summary=verdict==='pass'?(lesson.pythonRequirements?'Đạt yêu cầu bài học.':lesson.requiredVariable?'Đạt yêu cầu gán và đọc giá trị của biến.':'Đạt yêu cầu hiển thị văn bản.'):!result.ok?'Chương trình chưa chạy thành công.':!outputPassed?'Output chưa khớp yêu cầu. Đối chiếu hai kết quả bên dưới.':lesson.pythonRequirements?'Output đã khớp. Cần làm đúng cách trong đề: '+lesson.practiceRule:`Output đã khớp. Bài này còn cần gán biến ${lesson.requiredVariable}, rồi dùng print() đọc biến đó.`;
  return {verdict,summary,expected:lesson.expected,at:new Date().toISOString()};
 }
+export async function judgeRoadmapPython(code,lessonId,initial,{signal}={}){
+ const lesson=pythonLesson(lessonId);
+ if(!lesson?.roadmapCases)throw new Error('Bài kiểm tra biến thể không hợp lệ.');
+ const cases=[];const started=Date.now();
+ for(const fixture of lesson.roadmapCases){
+  if(signal?.aborted)throw new Error('Đã dừng chạy Python.');
+  // Parsing replaces only authored input assignments, never client-selected files or tests.
+  // Unparse is used only for extra fixtures. The normal run retains original error locations.
+  const src=Buffer.from(code).toString('base64'),inputs=Buffer.from(JSON.stringify(fixture.inputs)).toString('base64');
+  const script=`import ast, base64, json
+tree = ast.parse(base64.b64decode('${src}').decode('utf-8'))
+inputs = json.loads(base64.b64decode('${inputs}'))
+seen = set()
+for node in tree.body:
+    if isinstance(node, ast.Assign) and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
+        name = node.targets[0].id
+        if name in inputs:
+            if name in seen:
+                raise ValueError('Chỉ gán biến đầu vào một lần ở đầu chương trình: ' + name)
+            seen.add(name)
+            node.value = ast.parse(repr(inputs[name]), mode='eval').body
+    elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and node.target.id in inputs:
+        name = node.target.id
+        if name in seen:
+            raise ValueError('Biến đầu vào bị gán lại: ' + name)
+        seen.add(name)
+        node.value = ast.parse(repr(inputs[name]), mode='eval').body
+if seen != set(inputs):
+    raise ValueError('Thiếu phép gán biến đầu vào: ' + ', '.join(sorted(set(inputs) - seen)))
+print(ast.unparse(ast.fix_missing_locations(tree)))`;
+  const parsed=initial.ok?await runPython(script,{signal}):null;
+  const run=parsed?.ok?await runPython(parsed.stdout,{signal}):null;
+  const passed=!!run?.ok&&normalizeOutput(run.stdout)===fixture.expected;
+  cases.push({name:fixture.name,passed,inputs:JSON.stringify(fixture.inputs),actual:run?.stdout||'',expected:fixture.expected,message:!initial.ok?'Chương trình gốc gặp lỗi.':!parsed?.ok?'Giữ phép gán riêng cho từng biến đầu vào như đề bài.':run?.error||run?.stderr||(passed?'Khớp dữ liệu thử.':'Kết quả chưa đúng khi đổi dữ liệu.')});
+  if(!initial.ok)break;
+ }
+ const passed=initial.ok&&normalizeOutput(initial.stdout)===lesson.expected&&cases.length===lesson.roadmapCases.length&&cases.every(c=>c.passed);
+ return {verdict:passed?'pass':'retry',summary:passed?'Đạt với các bộ dữ liệu đã công bố.':'Chưa đạt. Xem từng bộ dữ liệu và thông báo bên dưới.',expected:lesson.expected,at:new Date().toISOString(),contentVersion:lesson.contentVersion,cases,elapsedMs:Date.now()-started};
+}
 export async function pythonRoute(req,res,pathname){
  if(!pathname.startsWith('/api/python/'))return false;
  const json=(status,data)=>{if(!res.destroyed){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(data));}};
@@ -107,7 +146,7 @@ export async function pythonRoute(req,res,pathname){
   if(busy){json(409,{error:'Python đang chạy. Chờ hoặc bấm Dừng.'});return true;}
   busy=true;
   try{const controller=new AbortController(),abort=()=>controller.abort();res.on('close',abort);const result=await runPython(data.code,{signal:controller.signal});let judge;
-   if(pathname.endsWith('/submit')){const structurePassed=result.ok?await inspectVariable(data.code,data.lessonId,{signal:controller.signal}):false;judge=judgePython(result,data.lessonId,structurePassed);}
+   if(pathname.endsWith('/submit')){if(pythonLesson(data.lessonId).roadmapCases)judge=await judgeRoadmapPython(data.code,data.lessonId,result,{signal:controller.signal});else{const structurePassed=result.ok?await inspectVariable(data.code,data.lessonId,{signal:controller.signal}):false;judge=judgePython(result,data.lessonId,structurePassed);}}
    res.off('close',abort);json(200,{...result,...(judge?{judge}:{})});}finally{busy=false;}
  }catch(error){json(400,{error:error.message});}
  return true;

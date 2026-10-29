@@ -100,7 +100,7 @@ try{
  const mdPromise=page.waitForEvent('download');await page.goto(base+'/#settings');await page.locator('[data-export-md]').click();const md=await mdPromise;const mdPath=fileURLToPath(new URL('journal.md',folder));await md.saveAs(mdPath);assert.ok((await readFile(mdPath,'utf8')).includes('```python'));
  const progression=await browser.newContext({viewport:{width:1366,height:768},reducedMotion:'reduce'}),study=await progression.newPage();
  study.on('pageerror',e=>errors.push(e.message));study.on('request',r=>{if(r.method()==='POST'&&/\/api\/.*(?:chat|review|grade)/.test(r.url()))inference.push(r.url());});
- const lessons=curriculum.lessons.filter(l=>l.module==='python');
+ const lessons=curriculum.lessons.filter(l=>l.module==='python'&&!l.roadmapWeek);
  await study.goto(base+'/#lesson/'+lessons[0].id);
  for(const [index,l] of lessons.entries()){
   assert.ok(study.url().endsWith('#lesson/'+l.id));await study.getByRole('heading',{name:'Mục tiêu',exact:true}).waitFor();await study.getByText('Dùng để làm gì?',{exact:false}).waitFor();

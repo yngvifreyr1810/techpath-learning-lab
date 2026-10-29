@@ -1,8 +1,14 @@
 # TechPath — Personal Learning Lab
 
+## Lộ trình AI Engineer 12 tuần — đợt 1
+
+Mở `Start-Roadmap-Preview.cmd` → `http://127.0.0.1:4191/#roadmap`. Đã có bản đồ đủ 12 tuần và nội dung tuần 1–3 (18 buổi, 5 bài lý thuyết, 27 bài Python mới, 3 kiểm tra cuối tuần). Tuần 4–12 ghi **Sắp có**. Nguồn chính: AI Engineering from Scratch và roadmap.sh. Mỗi chặng ghi đích đến, minh chứng và hướng học tiếp; không gọi hoàn thành bài là thành thạo nghề.
+
+Thư viện hiện có 106 bài, gồm 54 Python (27 bài cũ + 27 bài mới), 12 API và 5 bài lý thuyết AI mới. Các ID và tiến độ cũ giữ nguyên. Preview dùng địa chỉ riêng; xuất/nhập Sao lưu để chuyển tiến độ từ địa chỉ cũ. Xem [phạm vi, cách chạy và kiểm chứng đợt 1](docs/ai-roadmap.md).
+
 ## Python và API Foundations
 
-Thư viện có **27 bài Python Foundations** và **12 bài API Foundations** (gửi request trực tiếp trong app). Sáu bài Python đầu gồm 3 bài `print()` và 3 bài biến văn bản: lý thuyết, ví dụ và tác dụng thực tế trước, tự viết code tạo output mong đợi, Chạy/Nộp bài và lỗi có giải thích tiếng Việt. Sau khi đạt, chủ động bấm sang bài luyện kế tiếp. Python chạy trên máy bằng `py -3`; luồng này không gọi AI. Python và SQL có gợi ý tên/cú pháp bằng Tab. Sau khi khởi động lại connector, mở `http://127.0.0.1:4173/#lesson/python-basic-print`. Xem [phạm vi và kiểm chứng](docs/python-foundations.md).
+Bộ Foundations ban đầu có **27 bài Python** và **12 bài API** (gửi request trực tiếp trong app). Sáu bài Python đầu gồm 3 bài `print()` và 3 bài biến văn bản: lý thuyết, ví dụ và tác dụng thực tế trước, tự viết code tạo output mong đợi, Chạy/Nộp bài và lỗi có giải thích tiếng Việt. Sau khi đạt, chủ động bấm sang bài luyện kế tiếp. Python chạy trên máy bằng `py -3`; luồng này không gọi AI. Python và SQL có gợi ý tên/cú pháp bằng Tab. Sau khi khởi động lại connector, mở `http://127.0.0.1:4173/#lesson/python-basic-print`. Xem [phạm vi và kiểm chứng](docs/python-foundations.md).
 
 ## SQL lab và AI đánh giá (v0.4 — luồng hiện tại)
 

@@ -15,7 +15,7 @@
   });
  });}
  group(1,'Gửi GET',
-  '<p><strong>API</strong> giúp chương trình trao đổi thông tin: gửi <strong>request</strong> (yêu cầu), nhận <strong>response</strong> (phản hồi).</p><p><strong>GET</strong> lấy thông tin. <strong>Đường dẫn</strong> chỉ thứ muốn lấy, như <code>/hello</code>. Response có mã trạng thái: <code>200</code> nghĩa là thành công.</p><p>Nội dung dạng <strong>JSON</strong> gồm tên và giá trị: <code>{"message": "Chào bạn"}</code>. message là tên thông tin, Chào bạn là giá trị. Bài GET chưa cần viết JSON.</p>',
+  '<p><strong>API</strong> giúp chương trình trao đổi thông tin: gửi <strong>request</strong> (yêu cầu), nhận <strong>response</strong> (phản hồi).</p><ul><li><strong>GET</strong> lấy thông tin.</li><li><strong>Đường dẫn</strong> chỉ thứ muốn lấy, như <code>/hello</code>.</li><li>Response có mã trạng thái: <code>200</code> nghĩa là thành công.</li></ul><p>Nội dung dạng <strong>JSON</strong> gồm tên và giá trị: <code>{"message": "Chào bạn"}</code>. message là tên thông tin, Chào bạn là giá trị. Bài GET chưa cần viết JSON.</p>',
   'Xin một thông tin từ chương trình khác, giống mở app để xem lời nhắn hoặc thông tin của bạn.',
   'Method: GET\nĐường dẫn: /hello\n\nResponse: HTTP 200\n{"message": "Chào bạn"}',
   'Bạn chọn GET và nhập /hello. API mẫu nhận yêu cầu rồi gửi lại lời chào trong trường message.',[
@@ -42,7 +42,7 @@
    {id:'query-api',title:'Luyện query: tìm sách API',goal:'Tự gửi request lọc một chủ đề khác.',path:'/books?topic=api',status:200,response:{books:[books[2]]},task:'Dùng GET tới /books với query topic=api để lấy sách API',hints:['Ôn lại mẫu /books?topic=...','Giá trị lọc là api, viết thường.','Kiểm tra danh sách response chỉ có sách API.']}
   ]);
  group(4,'Gửi POST và JSON',
-  '<p><strong>POST</strong> dùng để gửi dữ liệu cho API xử lý; ở đây là tạo một ghi chú. Đường dẫn <code>/notes</code> cho biết gửi tới phần ghi chú.</p><p><strong>Body</strong> là nội dung gửi kèm. Viết JSON như <code>{"title": "Mua sữa"}</code>: cặp ngoặc nhọn bao thông tin, dấu hai chấm nối tên với giá trị, chuỗi cần dấu nháy kép.</p><p>Header <code>Content-Type: application/json</code> nói body là JSON. Tạo thành công nhận <code>201 Created</code>. Mỗi lần chạy lab dùng dữ liệu mới, nên ID mẫu luôn là 1.</p>',
+  '<p><strong>POST</strong> dùng để gửi dữ liệu cho API xử lý; ở đây là tạo một ghi chú. Đường dẫn <code>/notes</code> cho biết gửi tới phần ghi chú.</p><p><strong>Body</strong> là nội dung gửi kèm. Viết JSON như <code>{"title": "Mua sữa"}</code>: cặp ngoặc nhọn bao thông tin, dấu hai chấm nối tên với giá trị, chuỗi cần dấu nháy kép.</p><ul><li>Header <code>Content-Type: application/json</code> nói body là JSON.</li><li>Tạo thành công nhận <code>201 Created</code>.</li><li>Mỗi lần chạy lab dùng dữ liệu mới, nên ID mẫu luôn là 1.</li></ul>',
   'Gửi nội dung bạn vừa viết để chương trình tạo một ghi chú mới.',
   'Method: POST\nĐường dẫn: /notes\nContent-Type: application/json\nBody: {"title": "Mua sữa"}\n\nHTTP 201\n{"id": 1, "title": "Mua sữa"}',
   'POST gửi ghi chú, Content-Type báo kiểu dữ liệu, body giữ nội dung. API mẫu trả ghi chú vừa tạo cùng ID 1.',[
