@@ -1,4 +1,4 @@
-const learningToken=crypto.randomUUID();
+let learningToken;
 /* Sites authenticates /mcp before forwarding. No tokens or user state stored here. */
 const RESOURCE='ui://techpath/workspace-v2.html';
 const MIME='text/html;profile=mcp-app';
@@ -58,6 +58,7 @@ export default {
  async fetch(request){
   const url=new URL(request.url);
   if(url.pathname.startsWith('/api/learning/')){
+   learningToken ||= crypto.randomUUID();
    if(request.headers.get('origin')&&request.headers.get('origin')!==url.origin)return json({error:'Forbidden'},403);
    if(url.pathname==='/api/learning/status'&&request.method==='GET')return json({ok:true,token:learningToken,version:ROADMAP.version});
    if(url.pathname!=='/api/learning/check'||request.method!=='POST')return json({error:'Not found'},404);
